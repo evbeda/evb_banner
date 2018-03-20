@@ -23,5 +23,3 @@ class EventsView(TemplateView, LoginRequiredMixin):
         ]
         return context
 
-    def profile(self, request):
-        return render(request, 'profile.html', {'form': ''})

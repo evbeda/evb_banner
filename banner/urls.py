@@ -5,5 +5,5 @@ from .views import EventsView
 
 
 urlpatterns = [
-    url(r'^accounts/profile/$', EventsView.profile, name='profile'),
+    url(r'^events/$', EventsView.as_view(template_name='events.html')),
 ]
