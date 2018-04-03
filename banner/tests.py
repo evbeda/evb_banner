@@ -33,7 +33,6 @@ class TestBase(TestCase):
         login = self.client.login(username='testuser', password='hello')
         return login
 
-
 class IndexViewTest(TestBase):
 
     def setUp(self):
@@ -124,6 +123,14 @@ class BannerDetailViewTest(TestBase):
     def test_banner_detail_view(self):
         response = self.client.get(self.banner.get_absolute_url)
         self.assertEqual(response.status_code, 200)
+
+# class EventTest(TestBase):
+#     pass
+
+class EventViewTest(TestBase):
+
+    def setUp(self):
+        super(EventViewTest, self).setUp()
 
 
 
