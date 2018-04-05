@@ -1,16 +1,96 @@
 <!DOCTYPE html>
 {% extends './shared/base.html' %}
 
-{% block content %}
-  <h1>Your events</h1>
+{# {% block content %} #}
+<!--  <h1>Your events</h1>
     <h3>Select your events for create a new banner</h3>
   <form action="" method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
+{#     {% csrf_token %}
+    {{ form.as_p }} #}
       <div class="media" style="padding-top: 40px;">
         <p><input type="submit" name="Events Selected"></p>
       </div>
 
 </form>
-{% endblock %}
 
+{# {% endblock %} #}
+-->
+
+{% block content %}
+  <h1>Your events</h1>
+      <h3>Select your events for create a new banner</h3>
+  <form action="" method="post">
+    {% csrf_token %}
+    {{ formset.management_form }}
+
+    {% for form in formset %}
+    {{ form.id }}
+    <div class="row">
+      <div class="col-md-4">
+        <h4 style="color:red;font-family:verdana">Title:</h4>
+      </div>
+      <div class="col-md-8" ></div>
+      <h4>{{ form.title.value }}</h4>
+    </div>
+    <div class="row">
+      <div class="col-md-4">
+        <h4 style="color:red;font-family:verdana" >Description:</h4>
+        <h4></h4>
+      </div>
+      <div class="col-md-8" ></div>
+      <h4>{{ form.description.value }}</h4>
+    </div>
+    <div class="row">
+      <div class="col-md-4">
+        <h4 style="color:red;font-family:verdana" >Start:</h4>
+      </div>
+      <div class="col-md-8" ></div>
+      <h4>{{ form.start.value }}</h4>
+    </div>
+    <div class="row">
+      <div class="col-md-4">
+        <h4 style="color:red;font-family:verdana" >End:</h4>
+      </div>
+      <div class="col-md-8" ></div>
+      <h4>{{ form.end.value }}</h4>
+    </div>
+    <div class="row">
+      <div class="col-md-4">
+        <h4 style="color:red;font-family:verdana" >Logo:</h4>
+
+      </div>
+      <div class="col-md-8" ></div>
+      <img src={{ form.logo.value }}>
+    </div>
+
+    <div class="row">
+      <div class="col-md-4">
+      </div>
+      <div class="col-md-8" ></div>
+      <h4 hidden="">{{ form.event_id }}</h4>
+    </div>
+
+    <div>
+    <div class="row">
+      <div class="col-md-12">
+        <h4 style="color:blue; font-size:200%">Select Event {{ form.selection }}</h4>
+      </div>
+      </div>
+
+<!--     <ul>
+        <li><h3>Title</h3><h4>{{ form.title.value }}</h4>{{ form.title }}</li>
+        <li><h3>Description</h3><h4>{{ form.description.value }}</h4></li>
+        <p><h3>Start</h3><label><h4>{{ form.start }}</h4></label></p>
+        <p><h3>End</h3><label><h4>{{ form.end }}</h4></label></p>
+        <p><h3>Logo</h3><label><h4>{{ form.logo.value }}</h4></label></p>
+        <p><h5>Select</h5><h4>{{ form.selection }}</h4></p>
+    </ul>
+    -->
+    {% endfor %}
+
+      <div class="media" style="padding-top: 40px;">
+        <p><input type="submit" name="Events Selected" class="btn btn-info"></p>
+      </div>
+  </form>
+
+{% endblock %}

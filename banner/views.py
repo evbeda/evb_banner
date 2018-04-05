@@ -17,6 +17,10 @@ from .models import (
 )
 from .forms import EventSelected
 
+from django.forms import formset_factory
+from django.http import HttpResponseRedirect
+from django.shortcuts import render
+
 
 DEFAULT_BANNER_DESIGN = 1
 
@@ -28,58 +32,86 @@ class EventsView(FormView, LoginRequiredMixin):
     template_name = "events/events.html"
     success_url = '../..'
 
-    def __init__(self, *args, **kwargs):
-        super(EventsView, self).__init__(*args, **kwargs)
-        self.form_init = False
-
     def get_initial(self):
         access_token = self.request.user.social_auth.all()[0].access_token
         eventbrite = Eventbrite(access_token)
         self.events = eventbrite.get('/users/me/events/')['events']
 
-    def get_form(self):
-        form = super(EventsView, self).get_form()
-        if not self.form_init:
-            self.form_init = True
-            for event in self.events:
-                form.add_event(event)
-        return form
+    '''trying formset'''
+    def get_context_data(self, **kwargs):
+        context = super(EventsView, self).get_context_data(**kwargs)
+        access_token = self.request.user.social_auth.all()[0].access_token
+        eventbrite = Eventbrite(access_token)
+        self.events = eventbrite.get('/users/me/events/')['events']
 
-    def form_valid(self, form, *args, **kwargs):
-        if any(form.cleaned_data.values()):
-            design = BannerDesign.objects.get(id=DEFAULT_BANNER_DESIGN)
-            banner = Banner.objects.create(
-                design=design,
-                user=self.request.user,
-            )
-            banner.description = 'This is the new banner'
-            banner.title = 'New banner'
-            banner.save()
-            for eventbrite_id, selected in form.cleaned_data.items():
-                for event in self.events:
-                    if (
-                            event['id'] == eventbrite_id and
-                            form.cleaned_data[eventbrite_id]
-                    ):
-                        even1 = Event(start=timezone.now(), end=timezone.now())
-                        edesign = EventDesign.objects.create(
+        data_event = []
+        for event in self.events:
+            if event['logo'] is not None:
+                logo = event['logo']['url']
+            else:
+                logo = 'none'
+            #import ipdb; ipdb.set_trace()
+            data = {'title': event['name']['text'],
+                    'description': event['description']['text'],
+                    'start': event['start']['local'],
+                    'end': event['end']['local'],
+                    'organizer': event['organizer_id'],
+                    'event_id': event['id'],
+                    'logo': logo,
+                    }
+            data_event.append(data)
+        event_formset = formset_factory(EventSelected, max_num=len(self.events))
+        # import ipdb; ipdb.set_trace()
+        formset = event_formset(initial=data_event)
+        return {'formset': formset}
+
+    def post(self, request, *args, **kwargs):
+
+        event_formset = formset_factory(EventSelected)
+        if request.method == 'POST':
+            formset = event_formset(request.POST, request.FILES)
+            if formset.is_valid():
+                self.get_initial()
+                # import ipdb; ipdb.set_trace()
+                for i in range(len(formset.cleaned_data)):
+                    if formset.cleaned_data[i]['selection']: # any
+                        design = BannerDesign.objects.create(user=self.request.user)
+                        banner = Banner.objects.create(
+                            design=design,
                             user=self.request.user,
                         )
-                        edesign.save()
-                        even1.banner = banner
-                        even1.design = edesign
-                        even1.title = event['name']['text']
-                        even1.description = event['description']['text']
-                        even1.start = event['start']['local']
-                        even1.end = event['end']['local']
-                        even1.organizer = event['organizer_id']
-                        if event['logo'] is not None:
-                            even1.logo = event['logo']['url']
-                        even1.custom_title = 'none'
-                        even1.custom_logo = 'none'
-                        even1.custom_description = 'none'
-                        even1.save()
-        return super(EventsView, self).form_valid(form, *args, **kwargs)
+                        banner.description = 'This is the new banner'
+                        banner.title = 'New banner'
+                        banner.save()
+                        break
+
+                for i in range(len(formset.cleaned_data)):
+                    if formset.cleaned_data[i]['selection']:
+                        for event in self.events:
+                            #import ipdb; ipdb.set_trace()
+                            if event['id'] == formset.cleaned_data[i]['event_id']:
+
+
+                                edesign = EventDesign.objects.create(
+                                    user=self.request.user,
+                                )
+                                edesign.save()
+                                even1 = Event()
+                                even1.banner = banner
+                                even1.design = edesign
+                                even1.title = event['name']['text']
+                                even1.description = event['description']['text']
+                                even1.start = event['start']['local']
+                                even1.end = event['end']['local']
+                                if event['logo'] is not None:
+                                    logo = event['logo']['url']
+                                else:
+                                    logo = 'none'
+                                even1.logo = logo
+                                even1.event_id = event['id']
+
+                                even1.save()
+                return super(EventsView, self).form_valid(formset, *args, **kwargs)
 
 
 @method_decorator(login_required, name='dispatch')
