@@ -84,6 +84,43 @@ hr {
   border:0;
   border-bottom:2px solid #f66a26;
 }
+.index-list-group-item {
+  height:100px;
+  border: 2px solid #C0C0C0;
+}
+
+.index-span{
+  font-size:24px;
+  margin-right: 20px;
+  color:#808080;
+}
+
+.index-i{
+  font-size:24px;
+  color:#808080;
+}
+
+.index-img{
+  margin-left: 150px;
+}
+
+.index-span-glyphicon-ring{
+  color:red;
+  width: 100px !important;
+  height: 100px;
+  color:#f66a26;
+  position: fixed;
+  right:15px;
+  bottom:105px;
+}
+
+
+
+
+
+
+
+
 
 
 
