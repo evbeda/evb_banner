@@ -60,7 +60,7 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
         )
         if len(social_auth) > 0:
             events = self.get_api_events(social_auth)
- 
+
         if self.kwargs:
             existing_events = Event.objects.filter(
                 banner_id=self.kwargs['pk'],
@@ -283,7 +283,13 @@ class BannerView(TemplateView, LoginRequiredMixin):
 
     def get_context_data(self, **kwargs):
         context = super(BannerView, self).get_context_data(**kwargs)
-        context['banners'] = Banner.objects.filter(user=self.request.user)
+        banners = Banner.objects.filter(user=self.request.user)
+        events = []
+        for banner in banners:
+            for event in Event.objects.filter(banner=banner):
+                events.append(event)
+        context['events'] = events
+        context['banners'] = banners
         return context
 
 
