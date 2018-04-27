@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+import calendar
+from datetime import datetime
+from django.conf import settings
+import pyrebase
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import NON_FIELD_ERRORS
@@ -9,18 +13,13 @@ from django.forms import modelformset_factory
 from django.utils.decorators import method_decorator
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
-from django.views.generic.edit import FormView
-from django.shortcuts import render
-import calendar
-from dateutil.parser import parse as parse_date
-import datetime
-from datetime import datetime
 from django.views.generic.edit import (
-    CreateView,
-    UpdateView,
     DeleteView,
+    FormView,
 )
+from django.shortcuts import render
 from eventbrite import Eventbrite
+from dateutil.parser import parse as parse_date
 from . import forms
 from .models import (
     Banner,
@@ -28,8 +27,6 @@ from .models import (
     Event,
     EventDesign,
 )
-from django.views.generic.edit import FormView
-from django.shortcuts import render, get_object_or_404
 
 
 DEFAULT_BANNER_DESIGN = 1
@@ -124,7 +121,7 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
             kwargs['initial']['description'] = banner.description
         return kwargs
 
-    def edit_banner(self, form, formset, pk, *args, **kwargs):
+    def edit_banner(self, form, formset, *args, **kwargs):
         form.instance.user = self.request.user
         updating_banner = Banner.objects.get(id=self.kwargs['pk'])
         updating_banner.title = form.cleaned_data['title']
@@ -138,7 +135,6 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
             event['evb_id'] for event in updated_events
             if event['selection']
         ]
-        # import ipdb; ipdb.set_trace()
         for updating_event in updating_events:
             if updating_event.evb_id not in updated_evb_id_list:
                 Event.objects.get(id=updating_event.id)
@@ -154,13 +150,6 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
                     new_event = Event()
                     new_event.banner = updating_banner
                     new_event.design = e_design
-                    if event['custom_logo']:
-                        fs = FileSystemStorage()
-                        filename = fs.save(
-                            event['custom_logo'].name,
-                            event['custom_logo']
-                        )
-                        new_event.custom_logo = fs.url(filename)
                     new_event.title = event['title']
                     new_event.description = event['description']
                     new_event.start = event['start']
@@ -171,6 +160,16 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
                     new_event.evb_url = event['evb_url']
                     new_event.custom_title = event['custom_title']
                     new_event.custom_description = event['custom_description']
+                    if Event.objects.all().count() == 0:
+                        last_event_id = 1
+                    else:
+                        last_event_id = Event.objects.latest('created').id
+                    if event['custom_logo']:
+                        new_event.custom_logo = self.img_upload(
+                            event['custom_logo'],
+                            new_event.banner.id,
+                            last_event_id + 1,
+                        )
                     new_event.save()
                 else:
                     for updating_event in updating_events:
@@ -181,14 +180,12 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
                                 = event['custom_description']
                             try:
                                 if event['custom_logo']:
-                                    fs = FileSystemStorage()
-                                    filename = fs.save(
-                                        event['custom_logo'].name,
-                                        event['custom_logo']
-                                    )
                                     updating_event.custom_logo \
-                                        = fs.url(filename)
-                                # updating_event.save()
+                                        = self.img_upload(
+                                            event['custom_logo'],
+                                            updating_event.banner.id,
+                                            updating_event.id,
+                                        )
                             except IntegrityError as e:
                                 print e.message
                             updating_event.save()
@@ -198,7 +195,6 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
         ).form_valid(form)
 
     def post(self, request, *args, **kwargs):
-        # import ipdb; ipdb.set_trace()
         form = forms.BannerForm(
             request.POST,
         )
@@ -213,7 +209,6 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
             request.FILES,
             queryset=Event.objects.none(),
         )
-        # import ipdb; ipdb.set_trace()
         if form.is_valid() and formset.is_valid():
             if not any([
                     selection_cleaned_data['selection']
@@ -227,8 +222,7 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
                 )
             if 'pk' in self.kwargs:
                 return self.edit_banner(form, formset, self.kwargs['pk'])
-            else:
-                return self.form_valid(form, formset)
+            return self.form_valid(form, formset)
         else:
             return self.form_invalid(form)
 
@@ -249,17 +243,21 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
                     id=DEFAULT_EVENT_DESIGN,
                 )
 
+                last_banner_id = Banner.objects.latest('created').id
                 for event in events:
                     if event is not None:
                         event.banner = banner
                         event.design = e_design
+                        if Event.objects.all().count() == 0:
+                            last_event_id = 1
+                        else:
+                            last_event_id = Event.objects.latest('created').id
                         if event.custom_logo:
-                            fs = FileSystemStorage()
-                            filename = fs.save(
-                                event.custom_logo.name,
-                                event.custom_logo
+                            event.custom_logo = self.img_upload(
+                                event.custom_logo,
+                                last_banner_id + 1,
+                                last_event_id + 1,
                             )
-                            event.custom_logo = fs.url(filename)
                         event.save()
         except IntegrityError as e:
             print e.message
@@ -268,6 +266,16 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
             BannerNewEventsSelectedCreateView,
             self,
         ).form_valid(form)
+
+    def img_upload(self, logo, banner, event):
+        firebase = pyrebase.initialize_app(settings.FIREBASECONFIG)
+        storage = firebase.storage()
+        storage.child(
+            'custom_logos/' + str(banner) + '/' + str(event) + '-' + logo.name
+        ).put(logo)
+        return storage.child(
+            'custom_logos/' + str(banner) + '/' + str(event) + '-' + logo.name
+        ).get_url(1)
 
 
 class BannerDeleteView(DeleteView):

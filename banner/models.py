@@ -62,7 +62,7 @@ class Event(models.Model):
     logo = models.CharField(max_length=5000)
     organizer = models.CharField(max_length=200)
     custom_title = models.CharField(max_length=1000)
-    custom_logo = models.FileField(upload_to='custom_logo/')
+    custom_logo = models.FileField(upload_to='custom_logo/', max_length=500)
     custom_description = models.TextField(null=True)
     banner = models.ForeignKey(Banner)
     design = models.ForeignKey(EventDesign, null=True)
