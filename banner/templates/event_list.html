@@ -56,11 +56,12 @@
 
               <p>Selecciona los eventos que quieres que aparezcan cuando el banner esté
               publicado.</p>
+                 <input class="form-control col-md-8 js-input-search" id="InputSearch" type="text" placeholder="Search" aria-label="Search">
             </div>
           </div>
           <div class="col-md-12">
             {% for event_form in formset %}
-              <div class="col col-md-12 border js-event-card" style="margin-top:10px">
+              <div class="col col-md-12 border js-event-card" id="content-card-parent" style="margin-top:10px">
                 <!-- card -->
                 <div class="row">
                     <div class="col col-md-1 py-4 d-flex align-items-center js-checkbox-event-item">
@@ -69,9 +70,9 @@
                     <div class="col col-md-3 py-2  d-flex align-items-center">
                        <img height="100" width="200" style="padding-right: 30px" src="{{ event_form.logo.value }}">
                     </div>
-                    <div class="col col-md-4 px-2">
+                    <div class="col col-md-4 px-2 ">
                         <h4 style="padding-top: 4px" >Título</h4>
-                          <p>{{ event_form.title.value }}</p>
+                          <p class="js-event-card-title">{{ event_form.title.value }}</p>
                     </div>
                     <div class="col col-md-4 px-2">
                         <h4 style="padding-top: 4px" >Descripción</h4>
@@ -146,6 +147,31 @@
       }
     })
   })
+</script>
+<script>
+    $(document).ready(function(){
+
+      $(".js-input-search").keyup(function() {
+
+        var filter_title = $(this).val()
+        $(".js-event-card .js-event-card-title").each(function() {
+          debugger;
+            var $event_card = $(this).parents('.js-event-card')
+            var event_title = $(this).text()
+            var title_regExp = new RegExp(filter_title, "im")
+            var title_match_regExp = event_title.search(title_regExp) >= 0
+            var considence_title = filter_title === ''
+
+            if (title_match_regExp || considence_title) {
+            $event_card.show();
+
+             } else {
+            $event_card.hide();
+            }
+      });
+    });
+});
+
 </script>
 {% endblock %}
 
