@@ -53,6 +53,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'social_django.middleware.SocialAuthExceptionMiddleware',
+    'mysite.middleware.SocialAuthExceptionMiddleware',
 ]
 
 ROOT_URLCONF = 'mysite.urls'
@@ -197,10 +198,10 @@ USE_TZ = True
 # Firebase config
 FIREBASECONFIG = {
     'apiKey': get_env_variable('FIREBASE_APIKEY'),
-    'authDomain': "evb-banner.firebaseapp.com",
-    'databaseURL': "https://evb-banner.firebaseio.com",
-    'projectId': "evb-banner",
-    'storageBucket': "evb-banner.appspot.com",
+    'authDomain': 'evb-banner.firebaseapp.com',
+    'databaseURL': 'https://evb-banner.firebaseio.com',
+    'projectId': 'evb-banner',
+    'storageBucket': 'evb-banner.appspot.com',
     'messagingSenderId': get_env_variable('FIRE_MSGSENDER_ID')
 }
 firebase = pyrebase.initialize_app(FIREBASECONFIG)
