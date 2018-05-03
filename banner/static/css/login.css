@@ -6,7 +6,7 @@ h1{
     font-size:45px;
 }
 .inner-form{
-  font-family: 'Atrian-FontZillian';
+  font-family: 'benton-regular', Monaco, monospace;
   display: flex;
   justify-content: center;
   padding:200px;
