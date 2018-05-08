@@ -6,6 +6,15 @@
 <div class="page-header box">
   <h2>Tus banners</h2>
 </div>
+{% if notassignedevents %}
+<div class="alert alert-primary" role="alert">
+  ¡Tenés eventos que no pertenecen a ningún banner!
+  ¿Querés asignarlos ahora? Hace click <a href="{% url 'add_events' %}" class="alert-link">acá</a>.
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+{% endif %}
 <div class="page-body">
   <div class="container-fluid" style="padding-top: 30px;">
     {% if banners %}

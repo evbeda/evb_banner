@@ -1,6 +1,9 @@
 from django.conf import settings
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils.translation import ugettext_lazy as _
+from social_django.models import UserSocialAuth
 
 
 class EventDesign(models.Model):
@@ -51,6 +54,8 @@ class Banner(models.Model):
     def get_absolute_url(self):
         return "/banner/%i/banner_detail/" % self.id
 
+    def __str__(self):
+        return self.title
 
 class Event(models.Model):
     evb_id = models.BigIntegerField(default=0)
@@ -64,8 +69,17 @@ class Event(models.Model):
     custom_title = models.CharField(max_length=1000)
     custom_logo = models.FileField(upload_to='custom_logo/', max_length=500)
     custom_description = models.TextField(null=True)
-    banner = models.ForeignKey(Banner)
+    banner = models.ForeignKey(Banner, null=True)
     design = models.ForeignKey(EventDesign, null=True)
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     changed = models.DateTimeField(auto_now=True, blank=True)
     order = models.IntegerField(default=1, null=True, blank=True)
+
+
+class UserWebhook(models.Model):
+    webhook_id = models.CharField(max_length=255)
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        unique=True,
+    )

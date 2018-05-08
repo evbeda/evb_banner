@@ -22,7 +22,7 @@ ALLOWED_HOSTS = [
     '0.0.0.0',
     'localhost',
     '.herokuapp.com',
-    'testserver'
+    'testserver',
 ]
 
 # Application definition
@@ -55,6 +55,8 @@ MIDDLEWARE = [
     'social_django.middleware.SocialAuthExceptionMiddleware',
     'mysite.middleware.SocialAuthExceptionMiddleware',
 ]
+
+CSRF_COOKIE_SECURE = False
 
 ROOT_URLCONF = 'mysite.urls'
 

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+{% extends '../shared/base.html' %}
+{% load bootstrap3 %}
+{% load staticfiles %}
+{% block content %}
+
+<link href="{% static 'css/banner-new.css' %}" rel="stylesheet">
+<a style="padding-left: 22px" href="{% url 'index' %}">Back</a>
+<form action="" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+  <div class="create-banner-header box">
+    <div class="row">
+      <div class="col-md-11">
+          <h2>Asignar eventos</h2>
+      </div>
+    </div>
+  </div>
+  <div class="create-banner-body">
+    <div class="container">
+      <div class="row" style="padding-top: 40px;">
+          {% if form.non_field_errors %}
+              <div class="row col-md-12">
+                <div class="non-field-errors">
+                  {% for err in form.non_field_errors %}
+                    <p class="form-error">{{ err }}</p>
+                  {% endfor %}
+                </div>
+              </div>
+          {% endif %}
+          {% for field in form %}
+          <div class="row col-md-12">
+            {% bootstrap_field field %}
+          </div>
+          {% endfor %}
+          {{ formset.management_form }}
+          {{ formset.media }}
+          <div class="col-md-12">
+            {% for event_form in formset %}
+              <div class="col col-md-12 border js-event-card" id="content-card-parent" style="margin-top:10px">
+                <!-- card -->
+                <div class="row">
+                    <div class="col col-md-1 py-4 d-flex align-items-center js-checkbox-event-item">
+                      {{ event_form.selection }}
+                    </div>
+                    <div class="col col-md-3 py-2  d-flex align-items-center">
+                       <img height="100" width="200" style="padding-right: 30px" src="{{ event_form.logo.value }}">
+                    </div>
+                    <div class="col col-md-4 px-2 ">
+                        <h4 style="padding-top: 4px" >Título</h4>
+                          <p class="js-event-card-title">{{ event_form.title.value }}</p>
+                    </div>
+                    <div class="col col-md-4 px-2">
+                        <h4 style="padding-top: 4px" >Descripción</h4>
+                          <p class="text-truncate" style="max-width: 400px">{{ event_form.description.value }}</p>
+                    </div>
+                </div>
+                <!-- card -->
+                <div class="d-none js-link-custom-event">
+                  <button type="button" class="btn btn-link">Personalizar datos del evento</button>
+                </div>
+                <div class="col-md-6 d-none js-custom-event-form">
+                    <div class="form-group">
+                            {{ event_form.title }}
+                            {% bootstrap_field event_form.custom_title %}
+                    </div>
+                    <div class="form-group">
+                            {{ event_form.description }}
+                            {% bootstrap_field event_form.custom_description %}
+                    </div>
+                    <div class="form-group">
+                        {{ event_form.logo }}
+                        {% bootstrap_field event_form.custom_logo %}
+                    </div>
+                </div>
+              </div>
+          {{ event_form.organizer }}
+          {{ event_form.evb_id }}
+          {{ event_form.evb_url }}
+          {{ event_form.start }}
+          {{ event_form.end }}
+          {{ event_form.id }}
+      {% endfor %}
+      </div>
+      </div>
+    </div>
+  </div>
+  <button type="submit" class="btn-submit btn btn-primary float-right">Asignar</button>
+</form>
+{% endblock %}
+

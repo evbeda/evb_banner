@@ -1,12 +1,10 @@
+""" Views module. Here is the definitions
+of all the views of the banner app """
 # -*- coding: utf-8 -*-
-import calendar
 from datetime import datetime
-from django.conf import settings
-import pyrebase
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import NON_FIELD_ERRORS
-from django.core.files.storage import FileSystemStorage
 from django.core.urlresolvers import reverse_lazy
 from django.db import IntegrityError, transaction
 from django.forms import modelformset_factory
@@ -18,7 +16,6 @@ from django.views.generic.edit import (
     FormView,
 )
 from django.shortcuts import render
-from eventbrite import Eventbrite
 from dateutil.parser import parse as parse_date
 from . import forms
 from .models import (
@@ -27,6 +24,12 @@ from .models import (
     Event,
     EventDesign,
 )
+from .utils import (
+    get_events_data,
+    get_auth_token,
+    get_api_events,
+)
+from eventbrite import Eventbrite
 
 
 DEFAULT_BANNER_DESIGN = 1
@@ -36,14 +39,11 @@ DEFAULT_EVENT_DESIGN = 1
 @method_decorator(login_required, name='dispatch')
 class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
 
+    """ This is the view of the creation and edit of the banners """
+
     form_class = forms.BannerForm
     template_name = 'events_list.html'
     success_url = reverse_lazy('index')
-
-    def get_api_events(self, social_auth):
-        access_token = social_auth[0].access_token
-        eventbrite = Eventbrite(access_token)
-        return eventbrite.get('/users/me/events/')['events']
 
     def get_context_data(self, **kwargs):
 
@@ -52,11 +52,8 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
             self
         ).get_context_data()
 
-        social_auth = self.request.user.social_auth.filter(
-            provider='eventbrite'
-        )
-        if len(social_auth) > 0:
-            events = self.get_api_events(social_auth)
+        token = get_auth_token(self.request.user)
+        events = get_api_events(token)
 
         if self.kwargs:
             existing_events = Event.objects.filter(
@@ -91,27 +88,27 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
             messages.append('You dont have active events')
             context['messages'] = messages
         else:
-            EventFormSet = modelformset_factory(
+            event_formset = modelformset_factory(
                 Event,
                 form=forms.EventForm,
                 extra=len(data_event),
             )
             if self.kwargs:
-                formset = EventFormSet(
+                formset = event_formset(
                     initial=data_event,
                     queryset=Event.objects.filter(
                         banner_id=self.kwargs['pk']
                     ),
                 )
             else:
-                formset = EventFormSet(
+                formset = event_formset(
                     initial=data_event,
                     queryset=Event.objects.none(),
                 )
             context['formset'] = formset
         return context
 
-    def get_form_kwargs(self, *args, **kwargs):
+    def get_form_kwargs(self, **kwargs):
         if self.kwargs:
             banner = Banner.objects.get(id=self.kwargs['pk'])
             kwargs = super(
@@ -199,12 +196,12 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
             request.POST,
         )
 
-        EventFormSet = modelformset_factory(
+        event_formset = modelformset_factory(
             Event,
             form=forms.EventForm,
         )
 
-        formset = EventFormSet(
+        formset = event_formset(
             request.POST,
             request.FILES,
             queryset=Event.objects.none(),
@@ -259,26 +256,19 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
                                 last_event_id + 1,
                             )
                         event.save()
-        except IntegrityError as e:
-            print e.message
+        except IntegrityError as error:
+            print error.message
 
         return super(
             BannerNewEventsSelectedCreateView,
             self,
         ).form_valid(form)
 
-    def img_upload(self, logo, banner, event):
-        firebase = pyrebase.initialize_app(settings.FIREBASECONFIG)
-        storage = firebase.storage()
-        storage.child(
-            'custom_logos/' + str(banner) + '/' + str(event) + '-' + logo.name
-        ).put(logo)
-        return storage.child(
-            'custom_logos/' + str(banner) + '/' + str(event) + '-' + logo.name
-        ).get_url(1)
-
 
 class BannerDeleteView(DeleteView):
+
+    """ This is the delete banner view """
+
     model = Banner
     template_name = 'delete_banner.html'
     success_url = reverse_lazy('index')
@@ -286,6 +276,9 @@ class BannerDeleteView(DeleteView):
 
 @method_decorator(login_required, name='dispatch')
 class BannerView(TemplateView, LoginRequiredMixin):
+
+    """ This is the index view. Here we display all the banners that the user
+    has created """
 
     template_name = 'index.html'
 
@@ -296,6 +289,10 @@ class BannerView(TemplateView, LoginRequiredMixin):
         for banner in banners:
             for event in Event.objects.filter(banner=banner):
                 events.append(event)
+        not_assigned_events = Event.objects.exclude(
+            banner__isnull=False
+        ).exists()
+        context['notassignedevents'] = not_assigned_events
         context['events'] = events
         context['banners'] = banners
         return context
@@ -303,6 +300,8 @@ class BannerView(TemplateView, LoginRequiredMixin):
 
 @method_decorator(login_required, name='dispatch')
 class BannerDetailView(DetailView, LoginRequiredMixin):
+
+    """ This view where we can see what's inside of a banner """
 
     model = Banner
 
@@ -317,6 +316,8 @@ class BannerDetailView(DetailView, LoginRequiredMixin):
 
 
 class BannerPreview(TemplateView, LoginRequiredMixin):
+
+    """ This view is the one that enables us to see the banner in action! """
 
     template_name = 'banner/preview.html'
 
@@ -341,78 +342,18 @@ class BannerPreview(TemplateView, LoginRequiredMixin):
         ]
 
         events_data = [
-            event for event in self.get_events_data(events, banner)
+            event for event in get_events_data(events, banner)
         ]
         context['banner'] = banner
         context['events_data'] = events_data
         return context
 
-    def get_events_data(self, events, banner):
-        '''events order'''
-        # events.sort(key=lambda tup: tup[0])
-
-        for event in events:
-            idx, event = event
-            event = self.replace_data(event)
-            yield {
-                'data_x': (idx + 1) * banner.design.data_x,
-                'data_y': (idx + 1) * banner.design.data_y,
-                'data_z': (idx + 1) * banner.design.data_z,
-                'data_rotate': banner.design.data_rotate,
-                'data_scale': banner.design.data_scale,
-                'event': event,
-            }
-
-    def replace_data(self, event):
-        if event.custom_title:
-            event.design.html = unicode(event.design.html).replace(
-                '|| title ||', unicode(event.custom_title)
-            )
-        else:
-            event.design.html = unicode(event.design.html).replace(
-                '|| title ||', unicode(event.title)
-            )
-
-        if event.custom_description:
-            event.design.html = unicode(event.design.html).replace(
-                '|| description ||', unicode(event.custom_description)
-            )
-        else:
-            event.design.html = unicode(event.design.html).replace(
-                '|| description ||', unicode(event.description)
-            )
-
-        if event.custom_logo:
-            event.design.html = unicode(event.design.html).replace(
-                '|| logo ||', unicode(event.custom_logo)
-            )
-        else:
-            event.design.html = unicode(event.design.html).replace(
-                '|| logo ||', unicode(event.logo)
-            )
-
-        event.design.html = unicode(event.design.html).replace(
-            '|| startdate_month ||',
-            calendar.month_name[event.start.month][:3].upper() + '.'
-        )
-
-        event.design.html = unicode(event.design.html).replace(
-            '|| startdate_day ||', unicode(event.start.day)
-        )
-
-        event.design.html = unicode(event.design.html).replace(
-            '|| evb_url ||', unicode(event.evb_url)
-        )
-
-        event.design.html = unicode(event.design.html).replace(
-            '|| id ||', unicode(event.id)
-        )
-
-        return event
-
 
 @method_decorator(login_required, name='dispatch')
 class EditEventDesignView(FormView, LoginRequiredMixin):
+
+    """ The view to edit the layout of an event (or anything really)
+    through an html editor """
 
     template_name = 'event/edit_design.html'
     form_class = forms.EventDesignForm
@@ -478,3 +419,93 @@ class EditEventDesignView(FormView, LoginRequiredMixin):
             EditEventDesignView,
             self,
         ).form_valid(form)
+
+
+@method_decorator(login_required, name='dispatch')
+class AddUnassignedEventsView(FormView, LoginRequiredMixin):
+
+    """ The view to edit the layout of an event (or anything really)
+    through an html editor """
+
+    template_name = 'banner/add_unassigned_events.html'
+    form_class = forms.SelectBannerForm
+    success_url = reverse_lazy('index')
+
+    def get_context_data(self, **kwargs):
+        context = super(
+            AddUnassignedEventsView,
+            self,
+        ).get_context_data(**kwargs)
+
+        not_assigned_events = Event.objects.exclude(
+            banner__isnull=False
+        )
+
+        event_formset = modelformset_factory(
+            Event,
+            form=forms.EventForm,
+            extra=0,
+        )
+
+        formset = event_formset(
+            queryset=not_assigned_events,
+        )
+
+        context['formset'] = formset
+        return context
+
+    def post(self, request, *args, **kwargs):
+        form = forms.SelectBannerForm(
+            request.POST,
+        )
+
+        event_formset = modelformset_factory(
+            Event,
+            form=forms.EventForm,
+        )
+
+        formset = event_formset(
+            request.POST,
+            request.FILES,
+            queryset=Event.objects.none(),
+        )
+
+        if form.is_valid() and formset.is_valid():
+            if not any([
+                    selection_cleaned_data['selection']
+                    for selection_cleaned_data in formset.cleaned_data
+            ]):
+                form.add_error(NON_FIELD_ERRORS, 'No events selected')
+                return render(
+                    request,
+                    self.template_name,
+                    {'form': form, 'formset': formset}
+                )
+            if 'pk' in self.kwargs:
+                return self.edit_banner(form, formset, self.kwargs['pk'])
+            return self.form_valid(form, formset)
+        else:
+            return self.form_invalid(form)
+
+    def form_valid(self, form, formset):
+        banner = form.cleaned_data['banner']
+        events = [
+            event['id'] for event in formset.cleaned_data if event['selection']
+        ]
+
+        for event in events:
+            event.banner = banner
+            event.save()
+
+        not_assigned_events_exists = Event.objects.exclude(
+            banner__isnull=False
+        ).exists()
+
+        if not_assigned_events_exists:
+            self.success_url = reverse_lazy('add_events')
+
+        return super(
+            AddUnassignedEventsView,
+            self,
+        ).form_valid(form)
+
