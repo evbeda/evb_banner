@@ -161,10 +161,6 @@ class BannerDetailViewTest(TestBase):
         self.mock_get_auth_token = self.eb_post_patcher.start()
         self.banner = BannerFactory()
 
-    def test_banner_detail_view(self):
-        response = self.client.get(self.banner.get_absolute_url)
-        self.assertEqual(response.status_code, 200)
-
     def tearDown(self):
         self.get_auth_token_patcher.stop()
         self.eb_post_patcher.stop()

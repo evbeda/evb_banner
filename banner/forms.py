@@ -92,3 +92,39 @@ class EventDesignForm(forms.ModelForm):
 
 class SelectBannerForm(forms.Form):
     banner = forms.ModelChoiceField(queryset=Banner.objects.all())
+
+
+class EventsSortForm(forms.Form):
+
+    sort = forms.IntegerField(required=True)
+    event = forms.IntegerField(
+        required=True,
+        widget=forms.HiddenInput(),
+    )
+    title = forms.CharField(
+        required=False,
+        widget=forms.HiddenInput(),
+    )
+    description = forms.CharField(
+        required=False,
+        widget=forms.HiddenInput(),
+    )
+    logo = forms.CharField(
+        required=False,
+        widget=forms.HiddenInput(),
+    )
+
+
+class BannerSortForm(forms.Form):
+    title = forms.CharField(
+        required=False,
+        widget=forms.HiddenInput(),
+    )
+    description = forms.CharField(
+        required=False,
+        widget=forms.HiddenInput(),
+    )
+    banner = forms.IntegerField(
+        required=True,
+        widget=forms.HiddenInput(),
+    )

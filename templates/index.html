@@ -27,27 +27,32 @@
               <div style="padding-top: 5px">
                 <div id="test" class="list-group-item index-list-group-item" >
                   <div class="row">
-                    <div class="col-md-9">
+                    <div class="col-md-8">
                       <h4>{{ banner.title }}</h4>
                         <p class="float-left">{{ banner.description }}</p>
                     </div>
                     <div class="col-md-1">
-                      <a data-toggle="tooltip" data-placement="top" title="vista previa del banner" class="" href="{% url 'preview' pk=banner.pk %}" target="blank">
-                        <span class="index-span fas fa-eye"></span>
+                      <a data-toggle="tooltip" data-placement="top" title="Coloque un orden en sus eventos" class="" href="{% url 'order_in_events' pk=banner.pk %}">
+                        <span>Ordenar Eventos</span>
                       </a>
-                      <p><h5>Ver</h5></p>
+                    </div>
+                    <div class="col-md-1">
+                        <a data-toggle="tooltip" data-placement="top" title="Vista previa del banner" class="" href="{% url 'preview' pk=banner.pk %}" target="blank">
+                          <span class="index-span fas fa-eye"></span>
+                        </a>
+                       <p>Ver</p>
                     </div>
                     <div class="col-md-1">
                       <a data-toggle="tooltip" data-placement="top" title="Editar banner" class="text-green" href="{% url 'banner_update' pk=banner.pk %}">
                         <span class="index-span fas fa-edit"></span>
                       </a>
-                      <p><h5>Editar</h5></p>
+                      <p>Editar</p>
                     </div>
                     <div class="col-md-1">
-                      <a data-toggle="tooltip" data-placement="top" title="Eliminar banner" class="text-red" href="{% url 'banner_delete' pk=banner.pk %}">
-                        <i class="index-i fa">&#xf00d;</i>
-                      </a>
-                      <p><h5>Eliminar</h5></p>
+                        <a data-toggle="tooltip" data-placement="top" title="Eliminar banner" class="text-red" href="{% url 'banner_delete' pk=banner.pk %}">
+                          <i class="index-i fa">&#xf00d;</i>
+                        </a>
+                       <p>Eliminar</p>
                     </div>
                   </div>
                 </div>
@@ -64,11 +69,14 @@
                     {% if event.banner.id == banner.id %}
                     <div class="panel-body" style="padding-top: 15px">
                       <div class="row">
-                        <div class="col-md-10">
+                        <div class="col-md-7">
                           <h5> {{ event.title }} </h5>
                         </div>
-                        <div class="col-md-2">
-                          <a href="{% url 'edit_design' pk=banner.pk epk=event.pk %}" class="float-right btn btn-primary">Edit view</a>
+                        <div class=".col-md-2 .offset-md-3">
+                          <a data-toggle="tooltip" data-placement="top" title="Editar banner" class="text-green" href="{% url 'edit_design' pk=banner.pk epk=event.pk %}">
+                            <span class="index-span fas fa-edit"></span>
+                          </a>
+                          <p>Editar</p>
                         </div>
                       </div>
                     </div>
@@ -100,3 +108,4 @@
   </div>
 </div>
 {% endblock %}
+
