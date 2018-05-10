@@ -8,6 +8,7 @@ from .views import (
     EditEventDesignView,
     SortInEvents,
 )
+from . import views
 
 
 urlpatterns = [
@@ -36,9 +37,11 @@ urlpatterns = [
         name='add_events'),
     url(r'event/add',
         accept_webhook,
-        name='accept_webhook'),
+        name='accept_webhook',
+        ),
     url(r'^(?P<pk>[0-9]+)/sort_in_events/$',
         SortInEvents.as_view(),
         name='order_in_events',
-        )
+        ),
+    url(r'^new/id$', views.get_api_event_by_id, name='banner_new_id'),
 ]

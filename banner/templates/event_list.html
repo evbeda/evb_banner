@@ -21,8 +21,7 @@
         {% endif %}
       </div>
     </div>
-    {{ formset.management_form }}
-    {{ formset.media }}
+
   </div>
   <div class="create-banner-body">
     <div class="container">
@@ -51,59 +50,84 @@
       {{ formset.media }}
       <div class="row">
           <div class="row" style="margin-top: 40px;">
-            <div class="section-title">
+            <div class="col-md-7">
+            <div class="section-title" style="width:500px">
               <h2>Seleccionar eventos</h2>
               <p>Selecciona los eventos que quieres que aparezcan cuando el banner esté
               publicado.</p>
-                 <input class="form-control col-md-8 js-input-search" id="InputSearch" type="text" placeholder="Search" aria-label="Search">
+                 <input class="form-control js-input-search" id="InputSearch" type="text" placeholder="Buscar" aria-label="Search" >
+            </div>
+          </div>
+          <div class="col-md-5">
+            <div class="section-title">
+              <h2 style="margin-left:65px">Buscar eventos</h2>
+              <p style="margin-left:65px">Busca eventos de otros organizadores a traves de Eventbrite</p>
+
+              <div class="row" style="margin-left:15px">
+                <div class="col-md-1">
+                  <div class="d-none loader "></div>
+                </div>
+                <div class="col-md-5">
+                  <input class="evb_id_input form-control" type="text" style="width:170px">
+                </div>
+                <div class="col-md-6">
+                  <button type="button" class="evb_id_button btn btn-default">Buscar</button>
+                </div>
+                  <label class=" error_label d-none" style="margin-left:50px; color:red">El id ingresado no es válido!</label>
+              </div>
+
             </div>
           </div>
           <div class="col-md-12">
             {% for event_form in formset %}
-              <div class="col col-md-12 border js-event-card" id="content-card-parent" style="margin-top:10px">
+              <div class="event-formset">
+                <div class="col col-md-12 border js-event-card" id="content-card-parent" style="margin-top:10px">
                 <!-- card -->
-                <div class="row">
+                  <div class="row">
                     <div class="col col-md-1 py-4 d-flex align-items-center js-checkbox-event-item">
                       {{ event_form.selection }}
                     </div>
                     <div class="col col-md-3 py-2  d-flex align-items-center">
-                       <img height="100" width="200" style="padding-right: 30px" src="{{ event_form.logo.value }}">
+                       <img class="image" height="100" width="200" style="padding-right: 30px" src="{{ event_form.logo.value }}">
                     </div>
                     <div class="col col-md-4 px-2 ">
-                        <h4 style="padding-top: 4px" >Título</h4>
-                          <p class="js-event-card-title">{{ event_form.title.value }}</p>
+                      <h4 style="padding-top: 4px" >Título</h4>
+                        <p class="js-event-card-title">{{ event_form.title.value }}</p>
                     </div>
                     <div class="col col-md-4 px-2">
-                        <h4 style="padding-top: 4px" >Descripción</h4>
-                          <p class="text-truncate" style="max-width: 400px">{{ event_form.description.value }}</p>
+                      <h4 style="padding-top: 4px" >Descripción</h4>
+                        <p class="description text-truncate" style="max-width: 400px">{{ event_form.description.value }}</p>
                     </div>
-                </div>
+                  </div>
                 <!-- card -->
-                <div class="d-none js-link-custom-event">
-                  <button type="button" class="btn btn-link">Personalizar datos del evento</button>
-                </div>
-                <div class="col-md-6 d-none js-custom-event-form">
+                  <div class="d-none js-link-custom-event">
+                    <button type="button" class="btn btn-link">Personalizar datos del evento</button>
+                  </div>
+                  <div class="col-md-6 d-none js-custom-event-form">
                     <div class="form-group">
-                            {{ event_form.title }}
-                            {% bootstrap_field event_form.custom_title %}
+                      {{ event_form.title }}
+                      {% bootstrap_field event_form.custom_title %}
                     </div>
                     <div class="form-group">
-                            {{ event_form.description }}
-                            {% bootstrap_field event_form.custom_description %}
+                      {{ event_form.description }}
+                      {% bootstrap_field event_form.custom_description %}
                     </div>
                     <div class="form-group">
-                        {{ event_form.logo }}
-                        {% bootstrap_field event_form.custom_logo %}
+                      {{ event_form.logo }}
+                      {% bootstrap_field event_form.custom_logo %}
                     </div>
-                </div>
-              </div>
+                  </div>
+
           {{ event_form.organizer }}
           {{ event_form.evb_id }}
           {{ event_form.evb_url }}
           {{ event_form.start }}
           {{ event_form.end }}
           {{ event_form.id }}
+         </div>
+          </div>
       {% endfor %}
+
       </div>
       <div class="d-flex justify-content-start">
         {% if not formset.queryset %}
@@ -115,8 +139,7 @@
         {% endif %}
       </div>
   </div>
-  </form>
-
+</form>
 {% endif %}
 
 <script>
@@ -134,17 +157,6 @@
         $hiddenForm.addClass('d-none')
       }
     })
-    $('.js-link-custom-event').click(function(e) {
-      var $target = $(e.target)
-          $targetRow = $target.parents('.js-event-card')
-          $hiddenForm = $targetRow.children('.js-custom-event-form')
-
-      if ($target.on('click')) {
-         $hiddenForm.removeClass('d-none')
-      } else {
-         $hiddenForm.addClass('d-none')
-      }
-    })
   })
 </script>
 <script>
@@ -154,7 +166,6 @@
 
         var filter_title = $(this).val()
         $(".js-event-card .js-event-card-title").each(function() {
-
             var $event_card = $(this).parents('.js-event-card')
             var event_title = $(this).text()
             var title_regExp = new RegExp(filter_title, "im")
@@ -172,5 +183,32 @@
 });
 
 </script>
-{% endblock %}
+<script src="{% static 'js/jquery.formset.js' %}"></script>
 
+<script>
+    $('.event-formset').formset({
+    });
+  $(document).ready(function() {
+    $(document).on('mouseenter', '.js-link-custom-event', function(e) {
+    $('.js-link-custom-event').click(function(e) {
+      var $target = $(e.target)
+          $targetRow = $target.parents('.js-event-card')
+          $hiddenForm = $targetRow.children('.js-custom-event-form')
+      if ($target.on('click')) {
+         $hiddenForm.removeClass('d-none')
+      } else {
+         $hiddenForm.addClass('d-none')
+      }
+    })
+    })
+  })
+</script>
+<script>
+  $(document).ready(function() {
+    debugger
+    $(document).on('click', '.evb_id_input', function(e) {
+      document.getElementsByClassName("error_label")[0].classList.add('d-none')
+    })
+  })
+</script>
+{% endblock %}
