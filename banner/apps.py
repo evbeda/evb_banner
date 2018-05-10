@@ -6,3 +6,6 @@ from django.apps import AppConfig
 
 class BannerConfig(AppConfig):
     name = 'banner'
+
+    def ready(self):
+        import banner.signals

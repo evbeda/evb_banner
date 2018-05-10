@@ -65,6 +65,7 @@ class EventForm(forms.ModelForm):
         if 'instance' in kwargs:
             self.fields['selection'].initial = True
 
+
 class BannerForm(forms.ModelForm):
 
     description = forms.CharField(
@@ -76,6 +77,7 @@ class BannerForm(forms.ModelForm):
         model = Banner
         exclude = ('user', 'design',)
 
+
 class EventDesignForm(forms.ModelForm):
 
     html = forms.CharField(
@@ -86,3 +88,7 @@ class EventDesignForm(forms.ModelForm):
     class Meta:
         model = EventDesign
         exclude = ('user', 'name',)
+
+
+class SelectBannerForm(forms.Form):
+    banner = forms.ModelChoiceField(queryset=Banner.objects.all())

@@ -31,6 +31,10 @@ from .forms import (
     EventDesignForm,
     EventForm,
 )
+from .utils import (
+    get_api_events,
+    replace_data,
+)
 
 
 class TestBase(TestCase):
@@ -79,6 +83,18 @@ class BannerDesignViewTest(TestBase):
 
     def setUp(self):
         super(BannerDesignViewTest, self).setUp()
+        self.get_auth_token_patcher = patch(
+            'banner.utils.get_auth_token',
+            return_value=123456,
+        )
+        self.mock_get_auth_token = self.get_auth_token_patcher.start()
+        self.eb_post_patcher = patch(
+            'banner.utils.Eventbrite.post',
+            return_value={
+                'id': 123456,
+            },
+        )
+        self.mock_get_auth_token = self.eb_post_patcher.start()
         self.banner = BannerFactory()
 
     def test_banner_design_view(self):
@@ -102,10 +118,24 @@ class BannerDesignViewTest(TestBase):
         self.assertContains(response, 'event-' + str(event1.id))
         self.assertContains(response, 'event-' + str(event2.id))
 
+    def tearDown(self):
+        self.get_auth_token_patcher.stop()
+        self.eb_post_patcher.stop()
 
+
+@patch(
+    'banner.utils.get_auth_token',
+    return_value=123456,
+)
+@patch(
+    'banner.utils.Eventbrite.post',
+    return_value={
+        'id': 123456,
+    },
+)
 class BannerTest(TestBase):
 
-    def test_banner_creation(self):
+    def test_banner_creation(self, mock_eb_post, mock_get_auth_token):
         w = BannerFactory()
         self.assertTrue(isinstance(w, Banner))
         banner_list = Banner.objects.all()
@@ -117,16 +147,42 @@ class BannerDetailViewTest(TestBase):
 
     def setUp(self):
         super(BannerDetailViewTest, self).setUp()
+        self.get_auth_token_patcher = patch(
+            'banner.utils.get_auth_token',
+            return_value=123456,
+        )
+        self.mock_get_auth_token = self.get_auth_token_patcher.start()
+        self.eb_post_patcher = patch(
+            'banner.utils.Eventbrite.post',
+            return_value={
+                'id': 123456,
+            },
+        )
+        self.mock_get_auth_token = self.eb_post_patcher.start()
         self.banner = BannerFactory()
 
     def test_banner_detail_view(self):
         response = self.client.get(self.banner.get_absolute_url)
         self.assertEqual(response.status_code, 200)
 
+    def tearDown(self):
+        self.get_auth_token_patcher.stop()
+        self.eb_post_patcher.stop()
 
+
+@patch(
+    'banner.utils.get_auth_token',
+    return_value=123456,
+)
+@patch(
+    'banner.utils.Eventbrite.post',
+    return_value={
+        'id': 123456,
+    },
+)
 class EventTest(TestBase):
 
-    def test_event_creation(self):
+    def test_event_creation(self, mock_eb_post, mock_get_auth_token):
         w = EventFactory()
         self.assertTrue(isinstance(w, Event))
         event_list = Event.objects.all()
@@ -138,11 +194,6 @@ class EventViewTest(TestBase):
 
     def setUp(self):
         super(EventViewTest, self).setUp()
-        UserSocialAuth.objects.create(
-            user=self.user,
-            provider='eventbrite',
-            extra_data={'access_token': 'user_token'},
-        )
 
     @patch('banner.views.Eventbrite.get')
     def test_events_page_status_code(self, mock_eventbrite_get):
@@ -156,12 +207,6 @@ class EventViewTest(TestBase):
             mock_eventbrite_get.call_args_list[0][0][0],
             '/users/me/events/',
         )
-
-    @skip('implementar pagina de error cuando no hay eventos en Eventbrite')
-    @patch('banner.views.Eventbrite.get')
-    def test_error_none_events(self, mock_eventbrite_get):
-        response = self.client.get('/banner/new/')
-        self.assertContains(response, 'You dont have any event in Eventbrite')
 
     @patch('banner.views.Eventbrite.get')
     def test_call_once_api(self, mock_eventbrite_get):
@@ -217,6 +262,18 @@ class EditEventDesignViewTest(TestBase):
 
     def setUp(self):
         super(EditEventDesignViewTest, self).setUp()
+        self.get_auth_token_patcher = patch(
+            'banner.utils.get_auth_token',
+            return_value=123456,
+        )
+        self.mock_get_auth_token = self.get_auth_token_patcher.start()
+        self.eb_post_patcher = patch(
+            'banner.utils.Eventbrite.post',
+            return_value={
+                'id': 123456,
+            },
+        )
+        self.mock_get_auth_token = self.eb_post_patcher.start()
         self.banner = BannerFactory()
         self.event = EventFactory()
 
@@ -322,91 +379,109 @@ class EditEventDesignViewTest(TestBase):
             self.event.design.html
         )
 
+    def tearDown(self):
+        self.get_auth_token_patcher.stop()
+        self.eb_post_patcher.stop()
+
 
 @patch(
-    'banner.views.BannerNewEventsSelectedCreateView.get_api_events',
-    return_value=[
-        {
-            "name": {
-                "text": "Evento de prueba",
-                "html": "Evento de prueba"
-            },
-            "description": {
-                "text": "evento de prueba",
-                "html": "<P>evento de prueba<\/P>"
-            },
-            "id": "40741881063",
-            "url": "https://www.eventbrite.com.ar/e/evento-de-prueba-tickets-40741881063",
-            "start": {
-                "timezone": u'America/Argentina/Mendoza',
-                "local": u'2018-04-29T22:00:00',
-                "utc": u'2018-01-04T22:00:00Z'
-            },
-            "end": {
-                "timezone": 'America/Argentina/Mendoza',
-                "local": u'2018-04-29T23:00:00',
-                "utc": u'2018-01-05T01:00:00Z'
-            },
-            "organization_id": "236776874706",
-            "created": "2017-11-25T19:13:18Z",
-            "changed": "2018-01-05T05:23:49Z",
-            "capacity": 20,
-            "capacity_is_custom": False,
-            "status": "completed",
-            "currency": "ARS",
-            "listed": False,
-            "shareable": True,
-            "invite_only": False,
-            "online_event": False,
-            "show_remaining": True,
-            "tx_time_limit": 480,
-            "hide_start_date": False,
-            "hide_end_date": False,
-            "locale": "es_AR",
-            "is_locked": False,
-            "privacy_setting": "unlocked",
-            "is_series": False,
-            "is_series_parent": False,
-            "is_reserved_seating": False,
-            "source": "create_2.0",
-            "is_free": True,
-            "version": "3.0.0",
-            "logo_id": "38099252",
-            "organizer_id": "15852777053",
-            "venue_id": "22336362",
-            "category_id": "102",
-            "subcategory_id": None,
-            "format_id": "100",
-            "resource_uri": "https://www.eventbriteapi.com/v3/events/40741881063/",
-            "logo": {
-                "crop_mask": {
-                    "top_left": {
-                        "x": 196,
-                        "y": 184
+    'banner.views.Eventbrite.get',
+    return_value={
+        'events': [
+            {
+                "name": {
+                    "text": "Evento de prueba",
+                    "html": "Evento de prueba"
+                },
+                "description": {
+                    "text": "evento de prueba",
+                    "html": "<P>evento de prueba<\/P>"
+                },
+                "id": "40741881063",
+                "url": "https://www.eventbrite.com.ar/e/evento-de-prueba-tickets-40741881063",
+                "start": {
+                    "timezone": u'America/Argentina/Mendoza',
+                    "local": u'2018-04-29T22:00:00',
+                    "utc": u'2018-01-04T22:00:00Z'
+                },
+                "end": {
+                    "timezone": 'America/Argentina/Mendoza',
+                    "local": u'2018-04-29T23:00:00',
+                    "utc": u'2018-01-05T01:00:00Z'
+                },
+                "organization_id": "236776874706",
+                "created": "2017-11-25T19:13:18Z",
+                "changed": "2018-01-05T05:23:49Z",
+                "capacity": 20,
+                "capacity_is_custom": False,
+                "status": "completed",
+                "currency": "ARS",
+                "listed": False,
+                "shareable": True,
+                "invite_only": False,
+                "online_event": False,
+                "show_remaining": True,
+                "tx_time_limit": 480,
+                "hide_start_date": False,
+                "hide_end_date": False,
+                "locale": "es_AR",
+                "is_locked": False,
+                "privacy_setting": "unlocked",
+                "is_series": False,
+                "is_series_parent": False,
+                "is_reserved_seating": False,
+                "source": "create_2.0",
+                "is_free": True,
+                "version": "3.0.0",
+                "logo_id": "38099252",
+                "organizer_id": "15852777053",
+                "venue_id": "22336362",
+                "category_id": "102",
+                "subcategory_id": None,
+                "format_id": "100",
+                "resource_uri": "https://www.eventbriteapi.com/v3/events/40741881063/",
+                "logo": {
+                    "crop_mask": {
+                        "top_left": {
+                            "x": 196,
+                            "y": 184
+                        },
+                        "width": 464,
+                        "height": 232
                     },
-                    "width": 464,
-                    "height": 232
-                },
-                "original": {
-                    "url": "https://img.evbuc.com/https%3A%2F%2Fcdn.evbuc.com%2Fimages%2F38099252%2F236776874706%2F1%2Foriginal.jpg?auto=compress&s=109e5624c733ef88316094935138451f",
-                    "width": 835,
-                    "height": 470
-                },
-                "id": 38099252,
-                "url": "https://img.evbuc.com/https%3A%2F%2Fcdn.evbuc.com%2Fimages%2F38099252%2F236776874706%2F1%2Foriginal.jpg?h=200&w=450&auto=compress&rect=196%2C184%2C464%2C232&s=dd415facae0a66bcd1ce9178aac57f68",
-                "aspect_ratio": "2",
-                "edge_color": "#ffffff",
-                "edge_color_set": True
+                    "original": {
+                        "url": "https://img.evbuc.com/https%3A%2F%2Fcdn.evbuc.com%2Fimages%2F38099252%2F236776874706%2F1%2Foriginal.jpg?auto=compress&s=109e5624c733ef88316094935138451f",
+                        "width": 835,
+                        "height": 470
+                    },
+                    "id": 38099252,
+                    "url": "https://img.evbuc.com/https%3A%2F%2Fcdn.evbuc.com%2Fimages%2F38099252%2F236776874706%2F1%2Foriginal.jpg?h=200&w=450&auto=compress&rect=196%2C184%2C464%2C232&s=dd415facae0a66bcd1ce9178aac57f68",
+                    "aspect_ratio": "2",
+                    "edge_color": "#ffffff",
+                    "edge_color_set": True
+                }
             }
-        }
-    ]
+        ]
+    }
 )
 class BannerNewEventsSelectedCreateViewTest(TestBase):
 
     def setUp(self):
         super(BannerNewEventsSelectedCreateViewTest, self).setUp()
+        self.get_auth_token_patcher = patch(
+            'banner.utils.get_auth_token',
+            return_value=123456,
+        )
+        self.mock_get_auth_token = self.get_auth_token_patcher.start()
+        self.eb_post_patcher = patch(
+            'banner.utils.Eventbrite.post',
+            return_value={
+                'id': 123456,
+            },
+        )
+        self.mock_get_auth_token = self.eb_post_patcher.start()
 
-    def test_banner_new_form_get(self, mock_api_events):
+    def test_banner_new_form_get(self, mock_get_api_events):
 
         response = self.client.get("/banner/new/", follow=True)
         self.assertEquals(200, response.status_code)
@@ -704,6 +779,10 @@ class BannerNewEventsSelectedCreateViewTest(TestBase):
             'Description for custom banner edited',
         )
 
+    def tearDown(self):
+        self.get_auth_token_patcher.stop()
+        self.eb_post_patcher.stop()
+
 
 class BannerFormTest(TestBase):
     def setUp(self):
@@ -775,3 +854,30 @@ class EventFormTest(TestBase):
         }
         form = EventForm(data=form_data)
         self.assertFalse(form.is_valid())
+
+
+class BannerUtilsTest(TestBase):
+
+    def setUp(self):
+        super(BannerUtilsTest, self).setUp()
+        self.get_auth_token_patcher = patch(
+            'banner.utils.get_auth_token',
+            return_value=123456,
+        )
+        self.mock_get_auth_token = self.get_auth_token_patcher.start()
+        self.eb_post_patcher = patch(
+            'banner.utils.Eventbrite.post',
+            return_value={
+                'id': 123456,
+            },
+        )
+        self.mock_get_auth_token = self.eb_post_patcher.start()
+
+    def test_replace_data_unicode(self):
+        event = EventFactory()
+        replaced_data = replace_data(event)
+        self.assertTrue(isinstance(replaced_data.design.html, unicode))
+
+    def tearDown(self):
+        self.get_auth_token_patcher.stop()
+        self.eb_post_patcher.stop()
