@@ -34,3 +34,12 @@ p{
     background: #074d6f;
     color: #ffffff;
 }
+.center-vert-and-hor {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.ac-font {
+  font-size: 80px;
+}
