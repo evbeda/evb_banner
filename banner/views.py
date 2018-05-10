@@ -447,16 +447,24 @@ class AddUnassignedEventsView(FormView, LoginRequiredMixin):
             extra=0,
         )
 
+        form = forms.SelectBannerForm()
+
+        form.fields['banner'].queryset = Banner.objects.filter(
+            user=self.request.user
+        )
+
         formset = event_formset(
             queryset=not_assigned_events,
         )
 
+        context['form'] = form
         context['formset'] = formset
         return context
 
     def post(self, request, *args, **kwargs):
         form = forms.SelectBannerForm(
             request.POST,
+            request.user,
         )
 
         event_formset = modelformset_factory(
