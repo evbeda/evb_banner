@@ -33,7 +33,8 @@ from .utils import (
     img_upload,
 )
 from eventbrite import Eventbrite
-
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
 
 DEFAULT_BANNER_DESIGN = 1
 DEFAULT_EVENT_DESIGN = 1
@@ -95,6 +96,7 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
                 Event,
                 form=forms.EventForm,
                 extra=len(data_event),
+
             )
             if self.kwargs:
                 formset = event_formset(
@@ -209,6 +211,7 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
             request.FILES,
             queryset=Event.objects.none(),
         )
+
         if form.is_valid() and formset.is_valid():
             if not any([
                     selection_cleaned_data['selection']
@@ -266,6 +269,30 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
             BannerNewEventsSelectedCreateView,
             self,
         ).form_valid(form)
+
+
+@csrf_exempt
+def get_api_event_by_id(request, *args, **kwargs):
+    access_token = request.user.social_auth.get(
+        provider='eventbrite'
+    ).access_token
+    eventbrite = Eventbrite(access_token)
+    event = eventbrite.get_event(request.POST['id'])
+    if event['logo'] is not None:
+        logo = event['logo']['url']
+    else:
+        logo = 'none'
+    data = {
+        'title': event['name']['text'],
+        'description': event['description']['text'],
+        'start': event['start']['local'].replace('T', ' '),
+        'end': event['end']['local'].replace('T', ' '),
+        'organizer': event['organizer_id'],
+        'evb_id': event['id'],
+        'evb_url': event['url'],
+        'logo': logo,
+    }
+    return JsonResponse(data)
 
 
 class BannerDeleteView(DeleteView):
