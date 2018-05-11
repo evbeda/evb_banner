@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+{% extends '../shared/base.html' %}
+{% load bootstrap3 %}
+{% load staticfiles %}
+{% block content %}
+<link href="{% static 'css/order-in-events.css' %}" rel="stylesheet">
+<a style="padding-left: 22px" href="{% url 'index' %}">Back</a>
+
+<form action="" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+        <div class="page-header">
+            <h2>{{ form.title.value }}</h2>
+            <p> {{ form.description.value }}</p>
+            {{ form.title }}
+            {{ form.description }}
+            {{ form.banner }}
+        </div>
+
+    {{ formset.management_form }}
+    {{ formset.media }}
+
+    {% if form.non_field_errors %}
+            <div class="non-field-errors">
+              {% for err in form.non_field_errors %}
+
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                  <strong>{{ err }}</strong> Ingrese nuevamente el orden que desea para sus eventos dentro banner.
+                  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+{% if events %}
+
+    {% for forms in formset %}
+        <div class="col col-md-12 border" style="margin-top:10px">
+            <div class="row">
+                <div class="col col-md-3 py-2  d-flex align-items-center">
+                    <img height="100" width="200" style="padding-right: 30px" src="{{ forms.logo.value }}">
+                </div>
+                <div class="col col-md-3 px-2 ">
+                    <h4 style="padding-top: 4px" >Título</h4>
+                      <p class="js-event-card-title">{{ forms.title.value }}</p>
+                </div>
+                <div class="col col-md-3 px-2">
+                    <h4 style="padding-top: 4px" >Descripción</h4>
+                      <p class="text-truncate" style="max-width: 400px">{{ forms.description.value }}</p>
+                </div>
+                <div class=" col-md-3">
+                    {% bootstrap_field forms.sort %}
+                </div>
+            </div>
+        </div>
+        {{ forms.logo }}
+        {{ forms.title }}
+        {{ forms.description }}
+        {{ forms.event }}
+    {% endfor %}
+
+{% else%}
+
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                  <strong>No tiene eventos en este Banner</strong> Seleccione la opción editar en la pagina de inicio para poder agregar eventos en su banner.
+                  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+        </div>
+{% endif %}
+
+    <button type="submit" style="margin-top: 10px" class="btn-submit btn btn-primary
+      float-right">Guardar Orden</button>
+</form>
+
+{% endblock %}
+
+

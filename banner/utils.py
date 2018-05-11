@@ -26,12 +26,11 @@ def get_events_data(events, banner):
     """
 
     for event in events:
-        idx, event = event
         event = replace_data(event)
         yield {
-            'data_x': (idx + 1) * banner.design.data_x,
-            'data_y': (idx + 1) * banner.design.data_y,
-            'data_z': (idx + 1) * banner.design.data_z,
+            'data_x': event.sort * banner.design.data_x,
+            'data_y': event.sort * banner.design.data_y,
+            'data_z': event.sort * banner.design.data_z,
             'data_rotate': banner.design.data_rotate,
             'data_scale': banner.design.data_scale,
             'event': event,

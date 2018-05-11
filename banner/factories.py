@@ -74,3 +74,4 @@ class EventFactory(DjangoModelFactory):
     created = LazyFunction(timezone.now)
     design = models.EventDesign.objects.get(id=1)
     banner = SubFactory(BannerFactory)
+    sort = Sequence(lambda n: n)

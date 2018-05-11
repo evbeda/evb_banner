@@ -1,13 +1,15 @@
+# -*- coding: utf-8 -*-
+
 """ Views module. Here is the definitions
 of all the views of the banner app """
-# -*- coding: utf-8 -*-
+
 from datetime import datetime
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import NON_FIELD_ERRORS
 from django.core.urlresolvers import reverse_lazy
 from django.db import IntegrityError, transaction
-from django.forms import modelformset_factory
+from django.forms import modelformset_factory, formset_factory
 from django.utils.decorators import method_decorator
 from django.views.generic.base import TemplateView
 from django.views.generic.detail import DetailView
@@ -139,7 +141,7 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
         for event in updated_events:
             if event['selection']:
 
-                '''create evetns'''
+                '''create events'''
                 if int(event['evb_id']) not in events_evb_id_list:
                     e_design = EventDesign.objects.get(
                         id=DEFAULT_EVENT_DESIGN,
@@ -298,6 +300,7 @@ class BannerView(TemplateView, LoginRequiredMixin):
         return context
 
 
+
 @method_decorator(login_required, name='dispatch')
 class BannerDetailView(DetailView, LoginRequiredMixin):
 
@@ -320,8 +323,10 @@ class BannerPreview(TemplateView, LoginRequiredMixin):
     """ This view is the one that enables us to see the banner in action! """
 
     template_name = 'banner/preview.html'
+    model = Event
 
     def get_context_data(self, **kwargs):
+
         context = super(BannerPreview, self).get_context_data(**kwargs)
         banner = Banner.objects.select_related(
             'design'
@@ -329,17 +334,9 @@ class BannerPreview(TemplateView, LoginRequiredMixin):
             id=self.kwargs['pk']
         )
 
-        # Should be refactored when assigning positions
-        # to the events in the banner
-        events = [
-            (idx, event)
-            for idx, event in
-            enumerate(
-                Event.objects.filter(
-                    banner=banner
-                )
-            )
-        ]
+        events = Event.objects.filter(
+            banner=banner
+        ).order_by('sort')
 
         events_data = [
             event for event in get_events_data(events, banner)
@@ -517,3 +514,145 @@ class AddUnassignedEventsView(FormView, LoginRequiredMixin):
             self,
         ).form_valid(form)
 
+
+class SortInEvents(FormView, LoginRequiredMixin):
+
+    template_name = 'event/sort_event.html'
+    success_url = reverse_lazy('index')
+    form_class = forms.BannerSortForm
+
+    def get_context_data(self, **kwargs):
+        context = super(SortInEvents, self).get_context_data(**kwargs)
+        banner = Banner.objects.get(id=self.kwargs['pk'])
+        events = Event.objects.filter(banner=banner)
+
+        EventFormSet = formset_factory(
+            form=forms.EventsSortForm,
+            extra=0,
+        )
+
+        initial_data = []
+        for event in events:
+            initial_data.append(
+                {
+                    'sort': 1,
+                    'event': event.id,
+                    'description': event.description,
+                    'title': event.title,
+                    'logo': event.logo,
+                }
+            )
+
+        form = forms.BannerSortForm(
+            initial={
+                'title': banner.title,
+                'description': banner.description,
+                'banner': banner.id
+            },
+        )
+
+        formset = EventFormSet(
+            initial=initial_data
+        )
+
+        context['form'] = form
+        context['formset'] = formset
+        context['events'] = events
+        context['banner'] = banner
+        return context
+
+    def post(self, request, *args, **kwargs):
+
+        banner = Banner.objects.get(id=self.kwargs['pk'])
+        events = Event.objects.filter(banner=banner)
+
+        bannerform = forms.BannerSortForm(
+            request.POST,
+            initial={
+                'title': banner.title,
+                'description': banner.description,
+                'banner': banner.id
+            },
+        )
+
+        EventFormSet = formset_factory(
+            form=forms.EventsSortForm,
+            extra=0,
+        )
+
+        initial_data = []
+        for event in events:
+            initial_data.append(
+                {
+                    'sort': 1,
+                    'event': event.id,
+                    'description': event.description,
+                    'title': event.title,
+                    'logo': event.logo,
+                }
+            )
+
+        formset = EventFormSet(
+            request.POST,
+            initial=initial_data
+        )
+
+        if bannerform.is_valid() and formset.is_valid():
+            list_input_sort = []
+            for element in formset.cleaned_data:
+                list_input_sort.append(element['sort'])
+
+            sort = range(1, len(events) + 1)
+
+            if len(set(list_input_sort)) != len(set(sort)):
+                bannerform.add_error(
+                    NON_FIELD_ERRORS,
+                    'Colocó ordenes iguales')
+
+            max_sort = max(sort)
+            max_list_input_sort = max(list_input_sort)
+
+            if max_list_input_sort > max_sort:
+
+                bannerform.add_error(
+                    NON_FIELD_ERRORS,
+                    'Colocó un orden mayor a su cantidad de eventos')
+
+            for i in list_input_sort:
+                if i < 1:
+                    bannerform.add_error(
+                        NON_FIELD_ERRORS,
+                        'Colocó un orden negativo')
+
+            if bannerform.errors:
+
+                return render(
+                    request,
+                    'event/sort_event.html',
+                    {'form': bannerform, 'formset': formset, 'events': events}
+                )
+        else:
+            return render(
+                request,
+                'event/sort_event.html',
+                {'form': bannerform, 'formset': formset, 'events': events}
+            )
+
+        for form in formset.forms:
+            id = form.cleaned_data['event']
+            sort = form.cleaned_data['sort']
+
+            event = look_for_event(id)
+            event.sort = sort
+            event.save()
+
+        return super(
+            SortInEvents,
+            self,
+        ).form_valid(form)
+
+
+def look_for_event(id):
+
+    event = Event.objects.get(id=id)
+    return event

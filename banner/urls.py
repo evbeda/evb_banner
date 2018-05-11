@@ -3,10 +3,10 @@ from .utils import accept_webhook
 from .views import (
     AddUnassignedEventsView,
     BannerPreview,
-    BannerDetailView,
     BannerNewEventsSelectedCreateView,
     BannerDeleteView,
     EditEventDesignView,
+    SortInEvents,
 )
 
 
@@ -17,9 +17,6 @@ urlpatterns = [
             template_name='event_list.html',
         ),
         name='banner_new',),
-    url(r'^(?P<pk>[0-9]+)/banner_detail/$',
-        BannerDetailView.as_view(),
-        name='banner_detail',),
     url(r'^(?P<pk>[0-9]+)/preview/$',
         BannerPreview.as_view(),
         name='preview',),
@@ -40,4 +37,8 @@ urlpatterns = [
     url(r'event/add',
         accept_webhook,
         name='accept_webhook'),
+    url(r'^(?P<pk>[0-9]+)/sort_in_events/$',
+        SortInEvents.as_view(),
+        name='order_in_events',
+        )
 ]
