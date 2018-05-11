@@ -30,6 +30,7 @@ from .utils import (
     get_events_data,
     get_auth_token,
     get_api_events,
+    img_upload,
 )
 from eventbrite import Eventbrite
 
@@ -164,7 +165,7 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
                     else:
                         last_event_id = Event.objects.latest('created').id
                     if event['custom_logo']:
-                        new_event.custom_logo = self.img_upload(
+                        new_event.custom_logo = img_upload(
                             event['custom_logo'],
                             new_event.banner.id,
                             last_event_id + 1,
@@ -180,7 +181,7 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
                             try:
                                 if event['custom_logo']:
                                     updating_event.custom_logo \
-                                        = self.img_upload(
+                                        = img_upload(
                                             event['custom_logo'],
                                             updating_event.banner.id,
                                             updating_event.id,
@@ -252,7 +253,7 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
                         else:
                             last_event_id = Event.objects.latest('created').id
                         if event.custom_logo:
-                            event.custom_logo = self.img_upload(
+                            event.custom_logo = img_upload(
                                 event.custom_logo,
                                 last_banner_id + 1,
                                 last_event_id + 1,
