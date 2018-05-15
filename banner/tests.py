@@ -526,12 +526,10 @@ class BannerNewEventsSelectedCreateViewTest(TestBase):
         saved_banner = Banner.objects.latest('changed',)
         saved_events = Event.objects.filter(banner=saved_banner)
 
-        default_event_design = EventDesign.objects.get(id=1)
         for saved_event in saved_events:
             self.assertTrue(
                 isinstance(saved_event, Event)
             )
-            self.assertEquals(default_event_design, saved_event.design)
 
     def test_form_post_form_invalid(self, mock_get_api_events):
 
@@ -871,8 +869,9 @@ class BannerUtilsTest(TestBase):
 
     def test_replace_data_unicode(self):
         event = EventFactory()
-        replaced_data = replace_data(event)
-        self.assertTrue(isinstance(replaced_data.design.html, unicode))
+        default_event_design = EventDesign.objects.get(id=1)
+        replaced_data = replace_data(event, default_event_design)
+        self.assertTrue(isinstance(replaced_data.html, unicode))
 
     def tearDown(self):
         self.get_auth_token_patcher.stop()

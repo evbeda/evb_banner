@@ -45,6 +45,7 @@ class BannerFactory(DjangoModelFactory):
     design = SubFactory(BannerDesignFactory)
     title = Sequence(lambda n: "Banner%03d" % n)
     description = Faker('text')
+    event_design = models.EventDesign.objects.get(id=1)
     created = LazyFunction(timezone.now)
 
 

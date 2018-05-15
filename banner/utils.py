@@ -26,7 +26,11 @@ def get_events_data(events, banner):
     """
 
     for event in events:
-        event = replace_data(event)
+        if not event.design:
+            design = event.banner.event_design
+        else:
+            design = event.design
+        new_design = replace_data(event, design)
         yield {
             'data_x': event.sort * banner.design.data_x,
             'data_y': event.sort * banner.design.data_y,
@@ -34,10 +38,11 @@ def get_events_data(events, banner):
             'data_rotate': banner.design.data_rotate,
             'data_scale': banner.design.data_scale,
             'event': event,
+            'design': new_design,
         }
 
 
-def replace_data(event):
+def replace_data(event, design):
 
     """
     Here we replace the pseudovariables of the design of the
@@ -45,50 +50,49 @@ def replace_data(event):
     """
 
     if event.custom_title:
-        event.design.html = unicode(event.design.html).replace(
+        design.html = unicode(design.html).replace(
             '|| title ||', unicode(event.custom_title)
         )
     else:
-        event.design.html = unicode(event.design.html).replace(
+        design.html = unicode(design.html).replace(
             '|| title ||', unicode(event.title)
         )
 
     if event.custom_description:
-        event.design.html = unicode(event.design.html).replace(
+        design.html = unicode(design.html).replace(
             '|| description ||', unicode(event.custom_description)
         )
     else:
-        event.design.html = unicode(event.design.html).replace(
+        design.html = unicode(design.html).replace(
             '|| description ||', unicode(event.description)
         )
 
     if event.custom_logo:
-        event.design.html = unicode(event.design.html).replace(
+        design.html = unicode(design.html).replace(
             '|| logo ||', unicode(event.custom_logo)
         )
     else:
-        event.design.html = unicode(event.design.html).replace(
+        design.html = unicode(design.html).replace(
             '|| logo ||', unicode(event.logo)
         )
 
-    event.design.html = unicode(event.design.html).replace(
+    design.html = unicode(design.html).replace(
         '|| startdate_month ||',
         calendar.month_name[event.start.month][:3].upper() + '.'
     )
 
-    event.design.html = unicode(event.design.html).replace(
+    design.html = unicode(design.html).replace(
         '|| startdate_day ||', unicode(event.start.day)
     )
 
-    event.design.html = unicode(event.design.html).replace(
+    design.html = unicode(design.html).replace(
         '|| evb_url ||', unicode(event.evb_url)
     )
 
-    event.design.html = unicode(event.design.html).replace(
+    design.html = unicode(design.html).replace(
         '|| id ||', unicode(event.id)
     )
-
-    return event
+    return design
 
 
 def img_upload(logo, banner, event):

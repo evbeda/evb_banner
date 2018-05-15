@@ -23,7 +23,7 @@
                                   data-scale="{{ event_data.data_scale }}"
                                   id="event-{{ event_data.event.id }}">
               <div class="event-container">
-                  {{ event_data.event.design.html|safe }} 
+                  {{ event_data.design.html|safe }}
               </div>
           </div>
           <script type="text/javascript">
@@ -37,7 +37,7 @@
               );
           </script>
         {% endfor %}
-    
+
     </div>
     <script src="{% static 'js/impress.js' %}"></script>
     <script>
