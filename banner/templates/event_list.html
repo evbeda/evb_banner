@@ -68,12 +68,13 @@
                   <div class="d-none loader "></div>
                 </div>
                 <div class="col-md-5">
-                  <input class="evb_id_input form-control" type="text" style="width:170px">
+                  <input class="evb_id_input form-control" type="number" style="width:170px" >
                 </div>
                 <div class="col-md-6">
-                  <button type="button" class="evb_id_button btn btn-default">Buscar</button>
+                  <button type="button" class="evb_id_button btn btn-default" >Buscar</button>
                 </div>
-                  <label class=" error_label d-none" style="margin-left:50px; color:red">El id ingresado no es válido!</label>
+                  <label class=" error_label_404 d-none" style="margin-left:50px; color:red">No se pudo encontrar el evento!</label>
+                  <label class=" error_label_500 d-none" style="margin-left:50px; color:red">Error en el servidor!</label>
               </div>
 
             </div>
@@ -156,8 +157,8 @@
         $hiddenLink.addClass('d-none')
         $hiddenForm.addClass('d-none')
       }
-    })
-  })
+    });
+  });
 </script>
 <script>
     $(document).ready(function(){
@@ -199,16 +200,16 @@
       } else {
          $hiddenForm.addClass('d-none')
       }
-    })
-    })
-  })
+    });
+    });
+  });
 </script>
 <script>
   $(document).ready(function() {
-    debugger
     $(document).on('click', '.evb_id_input', function(e) {
-      document.getElementsByClassName("error_label")[0].classList.add('d-none')
-    })
-  })
+      document.getElementsByClassName("error_label_404")[0].classList.add('d-none')
+      document.getElementsByClassName("error_label_500")[0].classList.add('d-none')
+    });
+  });
 </script>
 {% endblock %}

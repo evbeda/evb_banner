@@ -56,7 +56,6 @@ def replace_data(event, design):
     description = unicode(event.description)
     if event.custom_description:
         description = unicode(event.custom_description)
-
     logo = unicode(event.logo)
     if event.custom_logo:
         logo = unicode(event.custom_logo)
@@ -77,7 +76,6 @@ def replace_data(event, design):
     }
 
     design.html = design.html.format(**data)
-
     return design
 
 

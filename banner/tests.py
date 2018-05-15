@@ -35,6 +35,7 @@ from .utils import (
     get_api_events,
     replace_data,
 )
+from freezegun import freeze_time
 
 
 class TestBase(TestCase):
@@ -460,6 +461,7 @@ class EditEventDesignViewTest(TestBase):
         ]
     }
 )
+@freeze_time("May 23th, 2018")
 class BannerNewEventsSelectedCreateViewTest(TestBase):
 
     def setUp(self):
@@ -876,3 +878,184 @@ class BannerUtilsTest(TestBase):
     def tearDown(self):
         self.get_auth_token_patcher.stop()
         self.eb_post_patcher.stop()
+
+
+@patch(
+    'banner.utils.get_auth_token',
+    return_value=123456,
+)
+@patch(
+    'banner.views.Eventbrite.get_event',
+    return_value={
+                "name": {
+                    "text": "Evento de prueba",
+                    "html": "Evento de prueba"
+                },
+                "description": {
+                    "text": "evento de prueba",
+                    "html": "<P>evento de prueba<\/P>"
+                },
+                "id": "40741881063",
+                "url": "https://www.eventbrite.com.ar/e/evento-de-prueba-tickets-40741881063",
+                "start": {
+                    "timezone": u'America/Argentina/Mendoza',
+                    "local": u'2018-04-29T22:00:00',
+                    "utc": u'2018-01-04T22:00:00Z'
+                },
+                "end": {
+                    "timezone": 'America/Argentina/Mendoza',
+                    "local": u'2018-04-29T23:00:00',
+                    "utc": u'2018-01-05T01:00:00Z'
+                },
+                "organization_id": "236776874706",
+                "created": "2017-11-25T19:13:18Z",
+                "changed": "2018-01-05T05:23:49Z",
+                "capacity": 20,
+                "capacity_is_custom": False,
+                "status": "completed",
+                "currency": "ARS",
+                "listed": False,
+                "shareable": True,
+                "invite_only": False,
+                "online_event": False,
+                "show_remaining": True,
+                "tx_time_limit": 480,
+                "hide_start_date": False,
+                "hide_end_date": False,
+                "locale": "es_AR",
+                "is_locked": False,
+                "privacy_setting": "unlocked",
+                "is_series": False,
+                "is_series_parent": False,
+                "is_reserved_seating": False,
+                "source": "create_2.0",
+                "is_free": True,
+                "version": "3.0.0",
+                "logo_id": "38099252",
+                "organizer_id": "15852777053",
+                "venue_id": "22336362",
+                "category_id": "102",
+                "subcategory_id": None,
+                "format_id": "100",
+                "resource_uri": "https://www.eventbriteapi.com/v3/events/40741881063/",
+                "logo": {
+                    "crop_mask": {
+                        "top_left": {
+                            "x": 196,
+                            "y": 184
+                        },
+                        "width": 464,
+                        "height": 232
+                    },
+                    "original": {
+                        "url": "https://img.evbuc.com/https%3A%2F%2Fcdn.evbuc.com%2Fimages%2F38099252%2F236776874706%2F1%2Foriginal.jpg?auto=compress&s=109e5624c733ef88316094935138451f",
+                        "width": 835,
+                        "height": 470
+                    },
+                    "id": 38099252,
+                    "url": "https://img.evbuc.com/https%3A%2F%2Fcdn.evbuc.com%2Fimages%2F38099252%2F236776874706%2F1%2Foriginal.jpg?h=200&w=450&auto=compress&rect=196%2C184%2C464%2C232&s=dd415facae0a66bcd1ce9178aac57f68",
+                    "aspect_ratio": "2",
+                    "edge_color": "#ffffff",
+                    "edge_color_set": True
+                }
+            }
+)
+@freeze_time("May 23th, 2018")
+class GetApiEventsByID(TestBase):
+    def setUp(self):
+        super(GetApiEventsByID, self).setUp()
+
+    def test_events_page_status_code(self, mock_get_api_event, mock_get_auth_token):
+        id_data = {'id': '56'}
+        response = self.client.post("/banner/new/id", id_data, follow=True)
+        self.assertEqual(response.status_code, 200)
+
+    def test_call_once(self, mock_get_api_event, mock_get_auth_token):
+        id_data = {'id': '43938465131'}
+        self.client.post("/banner/new/id", id_data, follow=True)
+        mock_get_api_event.assert_called_once()
+    @patch(
+    'banner.views.Eventbrite.get',
+    return_value={
+        'events': [
+            {
+                "name": {
+                    "text": "Evento de prueba",
+                    "html": "Evento de prueba"
+                },
+                "description": {
+                    "text": "evento de prueba",
+                    "html": "<P>evento de prueba<\/P>"
+                },
+                "id": "40741881063",
+                "url": "https://www.eventbrite.com.ar/e/evento-de-prueba-tickets-40741881063",
+                "start": {
+                    "timezone": u'America/Argentina/Mendoza',
+                    "local": u'2050-04-29T22:00:00',
+                    "utc": u'2018-01-04T22:00:00Z'
+                },
+                "end": {
+                    "timezone": 'America/Argentina/Mendoza',
+                    "local": u'2018-04-29T23:00:00',
+                    "utc": u'2018-01-05T01:00:00Z'
+                },
+                "organization_id": "236776874706",
+                "created": "2017-11-25T19:13:18Z",
+                "changed": "2018-01-05T05:23:49Z",
+                "capacity": 20,
+                "capacity_is_custom": False,
+                "status": "completed",
+                "currency": "ARS",
+                "listed": False,
+                "shareable": True,
+                "invite_only": False,
+                "online_event": False,
+                "show_remaining": True,
+                "tx_time_limit": 480,
+                "hide_start_date": False,
+                "hide_end_date": False,
+                "locale": "es_AR",
+                "is_locked": False,
+                "privacy_setting": "unlocked",
+                "is_series": False,
+                "is_series_parent": False,
+                "is_reserved_seating": False,
+                "source": "create_2.0",
+                "is_free": True,
+                "version": "3.0.0",
+                "logo_id": "38099252",
+                "organizer_id": "15852777053",
+                "venue_id": "22336362",
+                "category_id": "102",
+                "subcategory_id": None,
+                "format_id": "100",
+                "resource_uri": "https://www.eventbriteapi.com/v3/events/40741881063/",
+                "logo": {
+                    "crop_mask": {
+                        "top_left": {
+                            "x": 196,
+                            "y": 184
+                        },
+                        "width": 464,
+                        "height": 232
+                    },
+                    "original": {
+                        "url": "https://img.evbuc.com/https%3A%2F%2Fcdn.evbuc.com%2Fimages%2F38099252%2F236776874706%2F1%2Foriginal.jpg?auto=compress&s=109e5624c733ef88316094935138451f",
+                        "width": 835,
+                        "height": 470
+                    },
+                    "id": 38099252,
+                    "url": "https://img.evbuc.com/https%3A%2F%2Fcdn.evbuc.com%2Fimages%2F38099252%2F236776874706%2F1%2Foriginal.jpg?h=200&w=450&auto=compress&rect=196%2C184%2C464%2C232&s=dd415facae0a66bcd1ce9178aac57f68",
+                    "aspect_ratio": "2",
+                    "edge_color": "#ffffff",
+                    "edge_color_set": True
+                }
+            }
+        ]
+    }
+)
+    def test_404_error(self, mock_eventbrite_get, mock_get_api_event, mock_get_auth_token):
+        id_data = {'id': '17'}
+        response = self.client.get("/banner/new/", follow=True)
+        self.client.post("/banner/new/id", id_data, follow=True)
+        self.assertContains(response, 'No se pudo encontrar el evento!')

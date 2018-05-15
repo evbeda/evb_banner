@@ -86,7 +86,6 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
                         'logo': logo,
                     }
                     data_event.append(data)
-
         messages = []
         if data_event == [] and 'existing_events' not in locals():
             messages.append('You dont have active events')
@@ -272,23 +271,22 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
 
 @csrf_exempt
 def get_api_event_by_id(request, *args, **kwargs):
-    access_token = request.user.social_auth.get(
-        provider='eventbrite'
-    ).access_token
+    access_token = get_auth_token(request.user)
     eventbrite = Eventbrite(access_token)
     event = eventbrite.get_event(request.POST['id'])
+    if event.get('status_code') == 404:
+        return JsonResponse({'status_code': event.get('status_code')})
     logo = 'none'
     if event.get('logo'):
         logo = event.get('logo').get('url')
-
     data = {
-        'title': event['name']['text'],
-        'description': event['description']['text'],
-        'start': event['start']['local'].replace('T', ' '),
-        'end': event['end']['local'].replace('T', ' '),
-        'organizer': event['organizer_id'],
-        'evb_id': event['id'],
-        'evb_url': event['url'],
+        'title': event.get('name').get('text'),
+        'description': event.get('description').get('text'),
+        'start': event.get('start').get('local').replace('T', ' '),
+        'end': event.get('end').get('local').replace('T', ' '),
+        'organizer': event.get('organizer_id'),
+        'evb_id': event.get('id'),
+        'evb_url': event.get('url'),
         'logo': logo,
     }
     return JsonResponse(data)
