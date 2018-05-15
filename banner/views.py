@@ -144,7 +144,7 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
         for event in updated_events:
             if event['selection']:
 
-                '''create events'''
+                '''add events in events (create in bd)'''
                 if int(event['evb_id']) not in events_evb_id_list:
                     e_design = EventDesign.objects.get(
                         id=DEFAULT_EVENT_DESIGN,
@@ -231,6 +231,8 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
 
     @transaction.atomic
     def form_valid(self, form, formset):
+
+
         form.instance.user = self.request.user
         banner = form.save(commit=False)
         events = formset.save(commit=False)
@@ -247,21 +249,25 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
                 )
 
                 last_banner_id = Banner.objects.latest('created').id
-                for event in events:
-                    if event is not None:
-                        event.banner = banner
-                        event.design = e_design
-                        if Event.objects.all().count() == 0:
-                            last_event_id = 1
-                        else:
-                            last_event_id = Event.objects.latest('created').id
-                        if event.custom_logo:
-                            event.custom_logo = img_upload(
-                                event.custom_logo,
-                                last_banner_id + 1,
-                                last_event_id + 1,
-                            )
-                        event.save()
+
+                count_events = [event for event in enumerate(sorted(events, reverse=True), 1) if event[1] != None]
+
+                for idx, event in count_events:
+
+                    event.sort = idx
+                    event.banner = banner
+                    event.design = e_design
+                    if Event.objects.all().count() == 0:
+                        last_event_id = 1
+                    else:
+                        last_event_id = Event.objects.latest('created').id
+                    if event.custom_logo:
+                        event.custom_logo = img_upload(
+                            event.custom_logo,
+                            last_banner_id + 1,
+                            last_event_id + 1,
+                        )
+                    event.save()
         except IntegrityError as error:
             print error.message
 
@@ -563,7 +569,6 @@ class SortInEvents(FormView, LoginRequiredMixin):
         for event in events:
             initial_data.append(
                 {
-                    'sort': 1,
                     'event': event.id,
                     'description': event.description,
                     'title': event.title,
@@ -583,6 +588,10 @@ class SortInEvents(FormView, LoginRequiredMixin):
             initial=initial_data
         )
 
+        for ev_form in formset:
+            sort = enumerate(range(1, len(events) + 1), 1)
+            ev_form.fields['sort'].choices = [i for i in sort]
+
         context['form'] = form
         context['formset'] = formset
         context['events'] = events
@@ -590,7 +599,6 @@ class SortInEvents(FormView, LoginRequiredMixin):
         return context
 
     def post(self, request, *args, **kwargs):
-
         banner = Banner.objects.get(id=self.kwargs['pk'])
         events = Event.objects.filter(banner=banner)
 
@@ -612,7 +620,6 @@ class SortInEvents(FormView, LoginRequiredMixin):
         for event in events:
             initial_data.append(
                 {
-                    'sort': 1,
                     'event': event.id,
                     'description': event.description,
                     'title': event.title,
@@ -625,7 +632,12 @@ class SortInEvents(FormView, LoginRequiredMixin):
             initial=initial_data
         )
 
+        for ev_form in formset:
+            sort = enumerate(range(1, len(events) + 1), 1)
+            ev_form.fields['sort'].choices = [i for i in sort]
+
         if bannerform.is_valid() and formset.is_valid():
+
             list_input_sort = []
             for element in formset.cleaned_data:
                 list_input_sort.append(element['sort'])
@@ -637,7 +649,7 @@ class SortInEvents(FormView, LoginRequiredMixin):
                     NON_FIELD_ERRORS,
                     'Colocó ordenes iguales')
 
-            max_sort = max(sort)
+            max_sort = str(max(sort))
             max_list_input_sort = max(list_input_sort)
 
             if max_list_input_sort > max_sort:

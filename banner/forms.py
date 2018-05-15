@@ -96,7 +96,7 @@ class SelectBannerForm(forms.Form):
 
 class EventsSortForm(forms.Form):
 
-    sort = forms.IntegerField(required=True)
+    sort = forms.ChoiceField(required=True)
     event = forms.IntegerField(
         required=True,
         widget=forms.HiddenInput(),
