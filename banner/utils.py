@@ -45,53 +45,37 @@ def get_events_data(events, banner):
 def replace_data(event, design):
 
     """
-    Here we replace the pseudovariables of the design of the
-    event passed as argument for the real values of those variables
+    Here we format the template of the design
+    of the event passed as argument
     """
-
+    title = unicode(event.title)
     if event.custom_title:
-        design.html = unicode(design.html).replace(
-            '|| title ||', unicode(event.custom_title)
-        )
-    else:
-        design.html = unicode(design.html).replace(
-            '|| title ||', unicode(event.title)
-        )
+        title = unicode(event.custom_title)
 
+    description = unicode(event.description)
     if event.custom_description:
-        design.html = unicode(design.html).replace(
-            '|| description ||', unicode(event.custom_description)
-        )
-    else:
-        design.html = unicode(design.html).replace(
-            '|| description ||', unicode(event.description)
-        )
+        description = unicode(event.custom_description)
 
+    logo = unicode(event.logo)
     if event.custom_logo:
-        design.html = unicode(design.html).replace(
-            '|| logo ||', unicode(event.custom_logo)
-        )
-    else:
-        design.html = unicode(design.html).replace(
-            '|| logo ||', unicode(event.logo)
-        )
+        logo = unicode(event.custom_logo)
 
-    design.html = unicode(design.html).replace(
-        '|| startdate_month ||',
-        calendar.month_name[event.start.month][:3].upper() + '.'
-    )
+    startdate_month = calendar.month_name[event.start.month][:3].upper()
+    startdate_day = unicode(event.start.day)
+    event_id = unicode(event.id)
 
-    design.html = unicode(design.html).replace(
-        '|| startdate_day ||', unicode(event.start.day)
-    )
+    data = {
+        'title': title,
+        'description': description,
+        'logo': logo,
+        'startdate_month': startdate_month,
+        'startdate_day': startdate_day,
+        'id': event_id,
+        'tinyurl': 'goo.gl/P3sY'
+    }
 
-    design.html = unicode(design.html).replace(
-        '|| evb_url ||', unicode(event.evb_url)
-    )
+    design.html = design.html.format(**data)
 
-    design.html = unicode(design.html).replace(
-        '|| id ||', unicode(event.id)
-    )
     return design
 
 
@@ -158,7 +142,8 @@ def create_webhook(user):
         }
         try:
             response = Eventbrite(token).post('/webhooks/', data)[u'id']
-            UserWebhook.objects.create(webhook_id=response, user=user)
+            if(response.get('status') == 200):
+                UserWebhook.objects.create(webhook_id=response, user=user)
         except Exception as ex:
             print ex.message
     return response
