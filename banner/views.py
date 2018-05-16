@@ -146,12 +146,8 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
 
                 '''add events in events (create in bd)'''
                 if int(event['evb_id']) not in events_evb_id_list:
-                    e_design = EventDesign.objects.get(
-                        id=DEFAULT_EVENT_DESIGN,
-                    )
                     new_event = Event()
                     new_event.banner = updating_banner
-                    new_event.design = e_design
                     new_event.title = event['title']
                     new_event.description = event['description']
                     new_event.start = event['start']
@@ -238,25 +234,21 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
         events = formset.save(commit=False)
         try:
             with transaction.atomic():
-                b_design = BannerDesign.objects.get(
+                banner.design = BannerDesign.objects.get(
                     id=DEFAULT_BANNER_DESIGN,
                 )
-                banner.design = b_design
-                banner.save()
-
-                e_design = EventDesign.objects.get(
+                banner.event_design = EventDesign.objects.get(
                     id=DEFAULT_EVENT_DESIGN,
                 )
+                banner.save()
 
                 last_banner_id = Banner.objects.latest('created').id
-
                 count_events = [event for event in enumerate(sorted(events, reverse=True), 1) if event[1] != None]
 
                 for idx, event in count_events:
 
                     event.sort = idx
                     event.banner = banner
-                    event.design = e_design
                     if Event.objects.all().count() == 0:
                         last_event_id = 1
                     else:
@@ -284,10 +276,10 @@ def get_api_event_by_id(request, *args, **kwargs):
     ).access_token
     eventbrite = Eventbrite(access_token)
     event = eventbrite.get_event(request.POST['id'])
-    if event['logo'] is not None:
-        logo = event['logo']['url']
-    else:
-        logo = 'none'
+    logo = 'none'
+    if event.get('logo'):
+        logo = event.get('logo').get('url')
+
     data = {
         'title': event['name']['text'],
         'description': event['description']['text'],
@@ -334,7 +326,6 @@ class BannerView(TemplateView, LoginRequiredMixin):
         return context
 
 
-
 @method_decorator(login_required, name='dispatch')
 class BannerDetailView(DetailView, LoginRequiredMixin):
 
@@ -372,9 +363,7 @@ class BannerPreview(TemplateView, LoginRequiredMixin):
             banner=banner
         ).order_by('sort')
 
-        events_data = [
-            event for event in get_events_data(events, banner)
-        ]
+        events_data = get_events_data(events, banner)
         context['banner'] = banner
         context['events_data'] = events_data
         return context
@@ -403,8 +392,17 @@ class EditEventDesignView(FormView, LoginRequiredMixin):
         ).get(
             pk=self.kwargs['epk']
         )
-        kwargs['initial']['html'] = event.design.html
-        return kwargs
+        if event.design:
+            kwargs['initial']['html'] = event.design.html
+            return kwargs
+        else:
+            banner = Banner.objects.select_related(
+                'event_design'
+            ).get(
+                pk=self.kwargs['pk']
+            )
+            kwargs['initial']['html'] = banner.event_design.html
+            return kwargs
 
     def post(self, request, *args, **kwargs):
 
@@ -413,8 +411,7 @@ class EditEventDesignView(FormView, LoginRequiredMixin):
         ).get(
             pk=self.kwargs['epk']
         )
-
-        if event.design.name == 'default':
+        if not event.design:
             form = forms.EventDesignForm(
                 request.POST,
             )
@@ -435,7 +432,9 @@ class EditEventDesignView(FormView, LoginRequiredMixin):
 
     def form_valid(self, form, *args, **kwargs):
         form.instance.user = self.request.user
+        # import ipdb; ipdb.set_trace()
         event_design = form.save()
+        event = Event.objects.get(pk=self.kwargs['epk'])
         if event_design.name != 'default':
             event = Event.objects.select_related(
                 'design'
@@ -443,7 +442,7 @@ class EditEventDesignView(FormView, LoginRequiredMixin):
                 pk=self.kwargs['epk']
             )
             event.design = event_design
-        event_design.save()
+        # event_design.save()
         event.save()
 
         return super(

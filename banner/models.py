@@ -49,6 +49,7 @@ class Banner(models.Model):
     description = models.TextField()
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     changed = models.DateTimeField(auto_now=True, blank=True)
+    event_design = models.ForeignKey(EventDesign)
 
     @property
     def get_absolute_url(self):

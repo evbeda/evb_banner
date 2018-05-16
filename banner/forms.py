@@ -75,7 +75,7 @@ class BannerForm(forms.ModelForm):
 
     class Meta:
         model = Banner
-        exclude = ('user', 'design',)
+        exclude = ('user', 'design', 'event_design')
 
 
 class EventDesignForm(forms.ModelForm):
