@@ -47,6 +47,7 @@ class Banner(models.Model):
     design = models.ForeignKey(BannerDesign, null=True)
     title = models.CharField(max_length=200)
     description = models.TextField()
+    custom_cover = models.FileField(upload_to='custom_cover/', max_length=500, null=True)
     created = models.DateTimeField(auto_now_add=True, null=True, blank=True)
     changed = models.DateTimeField(auto_now=True, blank=True)
 

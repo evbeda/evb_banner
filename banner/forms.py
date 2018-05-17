@@ -72,6 +72,7 @@ class BannerForm(forms.ModelForm):
         required=False,
         widget=forms.Textarea(attrs={'cols': 90, 'rows': 4})
     )
+    custom_cover = forms.FileField(required=False)
 
     class Meta:
         model = Banner

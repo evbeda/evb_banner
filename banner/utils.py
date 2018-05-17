@@ -1,5 +1,7 @@
 """ This are the methods that supports the behaviour of the views """
 import calendar
+import hashlib
+import time
 import json
 import requests
 import threading
@@ -91,20 +93,34 @@ def replace_data(event):
     return event
 
 
-def img_upload(logo, banner, event):
+def get_unique_file_name(user_first_name, user_id, file_name):
+    timestamp = str(int(time.time()))
+    f_name = file_name.replace(' ', '-')
+    h = hashlib.sha224(timestamp).hexdigest()
+    name = user_first_name + '-' + \
+        str(user_id) + '-' + h + '-' + f_name
+    return name
+
+
+def img_upload(self, logo):
 
     """
     Here is the upload of an image
     (or any file really) to the firebase service
     """
-
+    import ipdb; ipdb.set_trace()
     firebase = pyrebase.initialize_app(settings.FIREBASECONFIG)
     storage = firebase.storage()
+    unique_file_name = get_unique_file_name(
+        self.request.user.first_name,
+        self.request.user.id,
+        'image.png'
+    )
     storage.child(
-        'custom_logos/' + str(banner) + '/' + str(event) + '-' + logo.name
+        'custom_logos/' + unique_file_name
     ).put(logo)
     return storage.child(
-        'custom_logos/' + str(banner) + '/' + str(event) + '-' + logo.name
+        'custom_logos/' + unique_file_name
     ).get_url(1)
 
 

@@ -30,6 +30,7 @@ from .utils import (
     get_events_data,
     get_auth_token,
     get_api_events,
+    get_unique_file_name,
     img_upload,
 )
 from eventbrite import Eventbrite
@@ -121,6 +122,7 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
             ).get_form_kwargs()
             kwargs['initial']['title'] = banner.title
             kwargs['initial']['description'] = banner.description
+            kwargs['initial']['custom_cover'] = banner.custom_cover
         return kwargs
 
     def edit_banner(self, form, formset, *args, **kwargs):
@@ -128,6 +130,7 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
         updating_banner = Banner.objects.get(id=self.kwargs['pk'])
         updating_banner.title = form.cleaned_data['title']
         updating_banner.description = form.cleaned_data['description']
+        updating_banner.custom_cover = form.cleaned_data['custom_cover']
         updating_banner.save()
         updating_events = Event.objects.filter(banner_id=self.kwargs['pk'])
         events_evb_id_list = [event.evb_id for event in updating_events]
@@ -199,6 +202,7 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
     def post(self, request, *args, **kwargs):
         form = forms.BannerForm(
             request.POST,
+            request.FILES,
         )
 
         event_formset = modelformset_factory(
@@ -232,7 +236,6 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
     @transaction.atomic
     def form_valid(self, form, formset):
 
-
         form.instance.user = self.request.user
         banner = form.save(commit=False)
         events = formset.save(commit=False)
@@ -242,6 +245,12 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
                     id=DEFAULT_BANNER_DESIGN,
                 )
                 banner.design = b_design
+                if banner.custom_cover:
+                    banner.custom_cover = img_upload(
+                        self,
+                        banner.custom_cover,
+                    )
+                import ipdb; ipdb.set_trace()
                 banner.save()
 
                 e_design = EventDesign.objects.get(
@@ -250,7 +259,8 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
 
                 last_banner_id = Banner.objects.latest('created').id
 
-                count_events = [event for event in enumerate(sorted(events, reverse=True), 1) if event[1] != None]
+                count_events = [event for event in enumerate(
+                    sorted(events, reverse=True), 1) if event[1] is not None]
 
                 for idx, event in count_events:
 
@@ -332,7 +342,6 @@ class BannerView(TemplateView, LoginRequiredMixin):
         context['events'] = events
         context['banners'] = banners
         return context
-
 
 
 @method_decorator(login_required, name='dispatch')
