@@ -228,7 +228,6 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
     @transaction.atomic
     def form_valid(self, form, formset):
 
-
         form.instance.user = self.request.user
         banner = form.save(commit=False)
         events = formset.save(commit=False)
@@ -243,7 +242,9 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
                 banner.save()
 
                 last_banner_id = Banner.objects.latest('created').id
-                count_events = [event for event in enumerate(sorted(events, reverse=True), 1) if event[1] != None]
+                count_events = [event for event in enumerate(
+                    sorted(events, reverse=True), 1
+                ) if event[1] is not None]
 
                 for idx, event in count_events:
 
@@ -395,14 +396,14 @@ class EditEventDesignView(FormView, LoginRequiredMixin):
         if event.design:
             kwargs['initial']['html'] = event.design.html
             return kwargs
-        else:
-            banner = Banner.objects.select_related(
-                'event_design'
-            ).get(
-                pk=self.kwargs['pk']
-            )
-            kwargs['initial']['html'] = banner.event_design.html
-            return kwargs
+
+        banner = Banner.objects.select_related(
+            'event_design'
+        ).get(
+            pk=self.kwargs['pk']
+        )
+        kwargs['initial']['html'] = banner.event_design.html
+        return kwargs
 
     def post(self, request, *args, **kwargs):
 
@@ -432,7 +433,6 @@ class EditEventDesignView(FormView, LoginRequiredMixin):
 
     def form_valid(self, form, *args, **kwargs):
         form.instance.user = self.request.user
-        # import ipdb; ipdb.set_trace()
         event_design = form.save()
         event = Event.objects.get(pk=self.kwargs['epk'])
         if event_design.name != 'default':
@@ -442,7 +442,7 @@ class EditEventDesignView(FormView, LoginRequiredMixin):
                 pk=self.kwargs['epk']
             )
             event.design = event_design
-        # event_design.save()
+
         event.save()
 
         return super(

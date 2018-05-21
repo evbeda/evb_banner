@@ -177,3 +177,9 @@ html{
   height:40%;
   float:left;
 }
+.tinyurl{
+  font: 180% arial, sans-serif;
+  background: orange;
+  border-radius: 10px;
+  padding: 4%;
+}
