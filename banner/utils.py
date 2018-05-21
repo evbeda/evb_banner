@@ -3,6 +3,7 @@ import calendar
 import json
 import requests
 import threading
+import shorturlpy
 from django.conf import settings
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -63,6 +64,7 @@ def replace_data(event, design):
     startdate_month = calendar.month_name[event.start.month][:3].upper()
     startdate_day = unicode(event.start.day)
     event_id = unicode(event.id)
+    tiny_url = shorten_url(event.evb_url, 'tinyurl').replace('http://', '')
 
     data = {
         'title': title,
@@ -71,12 +73,17 @@ def replace_data(event, design):
         'startdate_month': startdate_month,
         'startdate_day': startdate_day,
         'id': event_id,
-        'tinyurl': 'goo.gl/P3sY'
+        'tinyurl': tiny_url,
     }
 
     design.html = design.html.format(**data)
 
     return design
+
+
+def shorten_url(url, service):
+    loadurl = shorturlpy.ShortUrlPy()
+    return loadurl.ShortenUrl(url, service)
 
 
 def img_upload(logo, banner, event):
