@@ -7,6 +7,7 @@ from .views import (
     BannerDeleteView,
     EditEventDesignView,
     SortInEvents,
+    EditAllEventDesignView,
 )
 from . import views
 
@@ -44,4 +45,7 @@ urlpatterns = [
         name='order_in_events',
         ),
     url(r'^new/id$', views.get_api_event_by_id, name='banner_new_id'),
+    url(r'^(?P<pk>[0-9]+)/eventdesign/$',
+        EditAllEventDesignView.as_view(),
+        name='edit_all_design'),
 ]

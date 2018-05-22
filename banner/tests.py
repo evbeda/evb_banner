@@ -329,22 +329,6 @@ class EditEventDesignViewTest(TestBase):
         self.assertEquals(200, response.status_code)
         self.assertFormError(response, 'form', None, "Can't submit it empty!")
 
-    def test_context_data(self):
-
-        response = self.client.get("/banner/{}/event/{}/".format(
-            self.banner.id,
-            self.event.id,
-        ), follow=True)
-
-        self.assertTrue(
-            isinstance(response.context_data['form'], EventDesignForm)
-        )
-        self.assertTrue(
-            isinstance(response.context_data['view'], EditEventDesignView)
-        )
-        self.assertEquals(self.event, response.context_data['event'])
-        self.assertEquals(200, response.status_code)
-
     def test_form_initial_data_default(self):
 
         default_event_design = EventDesign.objects.get(id=1)

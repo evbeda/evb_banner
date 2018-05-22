@@ -378,12 +378,6 @@ class EditEventDesignView(FormView, LoginRequiredMixin):
     form_class = forms.EventDesignForm
     success_url = reverse_lazy('index')
 
-    def get_context_data(self, **kwargs):
-        context = super(EditEventDesignView, self).get_context_data(**kwargs)
-        event = Event.objects.get(pk=self.kwargs['epk'])
-        context['event'] = event
-        return context
-
     def get_form_kwargs(self):
         kwargs = super(EditEventDesignView, self).get_form_kwargs()
         event = Event.objects.select_related(
@@ -395,12 +389,8 @@ class EditEventDesignView(FormView, LoginRequiredMixin):
             kwargs['initial']['html'] = event.design.html
             return kwargs
 
-        banner = Banner.objects.select_related(
-            'event_design'
-        ).get(
-            pk=self.kwargs['pk']
-        )
-        kwargs['initial']['html'] = banner.event_design.html
+        design = EventDesign.objects.get(name='default')
+        kwargs['initial']['html'] = design.html
         return kwargs
 
     def post(self, request, *args, **kwargs):
@@ -693,3 +683,64 @@ def look_for_event(id):
 
     event = Event.objects.get(id=id)
     return event
+
+
+@method_decorator(login_required, name='dispatch')
+class EditAllEventDesignView(FormView, LoginRequiredMixin):
+
+    """ The view to edit the layout of all the banner events (or anything really)
+    through an html editor """
+
+    template_name = 'event/edit_design.html'
+    form_class = forms.EventDesignForm
+    success_url = reverse_lazy('index')
+
+    def get_context_data(self, **kwargs):
+        context = super(
+            EditAllEventDesignView, self
+        ).get_context_data(**kwargs)
+        return context
+
+    def get_form_kwargs(self):
+        kwargs = super(EditAllEventDesignView, self).get_form_kwargs()
+        banner = Banner.objects.select_related(
+            'event_design'
+        ).get(
+            pk=self.kwargs['pk']
+        )
+        kwargs['initial']['html'] = banner.event_design.html
+        return kwargs
+
+    def post(self, request, *args, **kwargs):
+
+        form = forms.EventDesignForm(
+            request.POST,
+        )
+        if form.is_valid():
+            return self.form_valid(form)
+
+        form.add_error(NON_FIELD_ERRORS, "Can't submit it empty!")
+        return render(
+            request,
+            'event/edit_design.html',
+            {'form': form}
+        )
+
+    def form_valid(self, form, *args, **kwargs):
+        form.instance.user = self.request.user
+        banner_design = form.save()
+        banner = Banner.objects.get(pk=self.kwargs['pk'])
+        if banner_design.name != 'default':
+            banner = Banner.objects.select_related(
+                'event_design'
+            ).get(
+                pk=self.kwargs['pk']
+            )
+            banner.event_design = banner_design
+
+        banner.save()
+
+        return super(
+            EditAllEventDesignView,
+            self,
+        ).form_valid(form)
