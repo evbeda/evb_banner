@@ -78,15 +78,17 @@ h1 {
   height: 50px;
   width: 200px;
 }
-hr {
-  margin:20px 0px 20px 0p;
-  padding:0px;
-  border:0;
-  border-bottom:2px solid #f66a26;
-}
 .index-list-group-item {
-  height:100px;
-  border: 2px solid #C0C0C0;
+  height: 30px;
+  padding: 5px;
+  border: transparent;
+  background: transparent;
+}
+.index-list-group-item-buttons {
+  font-size: 10pt;
+  width: auto !important;
+  padding: 3px !important;
+  margin-bottom: 1px !important;
 }
 
 .index-span{
@@ -105,10 +107,10 @@ hr {
 }
 
 .index-span-glyphicon-ring{
-  color:red;
   width: 100px !important;
   height: 100px;
   color:#f66a26;
+  background: transparent;
   position: fixed;
   right:15px;
   bottom:105px;
@@ -131,13 +133,27 @@ hr {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
 }
-
-
-
-
-
-
-
-
-
-
+.wrapper {
+  text-align: center;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%,-50%);
+  position: absolute;
+  z-index: 1
+}
+.wrapper p {
+  font-size: 13pt;
+}
+.wrapper h4 {
+  padding-top: 10px;
+}
+.no-margin {
+  padding-left: 0 !important;
+  margin: 0 !important;
+}
+.no-padding {
+  padding: 0 !important;
+}
+.description-margin {
+  margin-top: 15px;
+}

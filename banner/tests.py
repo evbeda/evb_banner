@@ -67,7 +67,7 @@ class BannerViewTest(TestBase):
 
     def test_no_banners(self):
         response = self.client.get('/')
-        self.assertContains(response, 'No banners yet!')
+        self.assertContains(response, 'Todavía no tenés banners.')
 
 
 class BannerDesignTest(TestBase):
