@@ -102,8 +102,8 @@
                                 delCssSelector = $.trim(options.deleteCssClass).replace(/\s+/g, '.');
                             applyExtraClasses(row, formCount);
                             forms = document.getElementsByClassName("event-formset")
-                            last_form = forms[forms.length - 1]
-                            row.insertAfter(last_form).show();
+                            first_form = forms[0]
+                            row.insertBefore(first_form).show();
                             row.find(childElementSelector).each(function() {
                                 updateElementIndex($(this), options.prefix, formCount);
                             });
