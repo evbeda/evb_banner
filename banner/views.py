@@ -129,6 +129,7 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
         updating_banner.description = form.cleaned_data['description']
         updating_banner.save()
         updating_events = Event.objects.filter(banner_id=self.kwargs['pk'])
+        count_events = sorted([event.sort for event in updating_events])
         events_evb_id_list = [event.evb_id for event in updating_events]
         updated_events = formset.cleaned_data
         '''delete events'''
@@ -140,12 +141,15 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
             if updating_event.evb_id not in updated_evb_id_list:
                 Event.objects.get(id=updating_event.id)
                 updating_event.delete()
+
         for event in updated_events:
             if event['selection']:
 
                 '''add events in events (create in bd)'''
                 if int(event['evb_id']) not in events_evb_id_list:
                     new_event = Event()
+                    new_event.sort = (count_events[-1] + 1)
+                    count_events.append(new_event.sort)
                     new_event.banner = updating_banner
                     new_event.title = event['title']
                     new_event.description = event['description']
@@ -239,7 +243,6 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
                     id=DEFAULT_EVENT_DESIGN,
                 )
                 banner.save()
-
                 last_banner_id = Banner.objects.latest('created').id
                 count_events = [event for event in enumerate(
                     sorted(events, reverse=True), 1
