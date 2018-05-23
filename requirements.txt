@@ -5,6 +5,7 @@ certifi==2018.1.18
 chardet==3.0.4
 coverage==4.0.3
 decorator==4.2.1
+dill==0.2.7.1
 dj-database-url==0.4.2
 Django==1.11
 django-bootstrap3==9.1.0
@@ -17,11 +18,13 @@ eventbrite==3.3.3
 factory-boy==2.10.0
 Faker==0.8.12
 Flask==0.8
+freezegun==0.3.10
 funcsigs==1.0.2
 future==0.16.0
 futures==3.2.0
 gax-google-logging-v2==0.8.3
 gax-google-pubsub-v1==0.8.3
+gcloud==0.17.0
 google-api-core==1.1.1
 google-auth==1.4.1
 google-gax==0.12.5
@@ -62,6 +65,7 @@ python-coveralls==2.9.1
 python-dateutil==2.7.1
 python-jwt==2.0.1
 python-openid==2.2.5
+python-shorturl==0.0.4
 pytz==2018.3
 PyYAML==3.12
 requests==2.11.1
@@ -80,4 +84,3 @@ urllib3==1.22
 wcwidth==0.1.7
 Werkzeug==0.8.3
 whitenoise==3.3.1
-python-shorturl==0.0.4

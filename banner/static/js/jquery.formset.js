@@ -92,9 +92,14 @@
                 document.getElementsByClassName("loader")[0].classList.remove('d-none')
                     xhttp.onreadystatechange = function() {
                         if (this.readyState == 4 && this.status == 500) {
-                            debugger
-                            document.getElementsByClassName("error_label")[0].classList.remove('d-none')
+                            document.getElementsByClassName("error_label_500")[0].classList.remove('d-none')
                             document.getElementsByClassName("loader")[0].classList.add('d-none')
+                            return;
+                        }
+                        if (this.readyState == 4 && JSON.parse(this.responseText).status_code == 404) {
+                            document.getElementsByClassName("error_label_404")[0].classList.remove('d-none')
+                            document.getElementsByClassName("loader")[0].classList.add('d-none')
+                            return;
                         }
                         if (this.readyState == 4 && this.status == 200) {
                             event = JSON.parse(this.responseText);
@@ -126,7 +131,6 @@
                     xhttp.open("POST", "/banner/new/id", true);
                     xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
                     xhttp.send("id="+evb_id_search);
-
                 // If a post-add callback was supplied, call it with the added form:
                 if (options.added) options.added(row);
                 return false;
