@@ -131,7 +131,8 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
         updating_events = Event.objects.filter(banner_id=self.kwargs['pk'])
         events_evb_id_list = [event.evb_id for event in updating_events]
         updated_events = formset.cleaned_data
-        '''delete events'''
+
+        # Remove events from banner
         updated_evb_id_list = [
             event['evb_id'] for event in updated_events
             if event['selection']
@@ -143,7 +144,7 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
         for event in updated_events:
             if event['selection']:
 
-                '''add events in events (create in bd)'''
+                # Add events in banner
                 if int(event['evb_id']) not in events_evb_id_list:
                     new_event = Event()
                     new_event.banner = updating_banner
@@ -170,7 +171,7 @@ class BannerNewEventsSelectedCreateView(FormView, LoginRequiredMixin):
                     new_event.save()
                 else:
                     for updating_event in updating_events:
-                        '''update events'''
+                        # Update existing events
                         if int(event['evb_id']) == updating_event.evb_id:
                             updating_event.custom_title = event['custom_title']
                             updating_event.custom_description \
@@ -578,6 +579,8 @@ class SortInEvents(FormView, LoginRequiredMixin):
         for ev_form in formset:
             sort = enumerate(range(1, len(events) + 1), 1)
             ev_form.fields['sort'].choices = [i for i in sort]
+            event = Event.objects.get(id=ev_form.initial['event'])
+            ev_form.fields['sort'].initial = event.sort
 
         context['form'] = form
         context['formset'] = formset
