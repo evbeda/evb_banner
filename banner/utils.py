@@ -146,9 +146,13 @@ def create_webhook(user):
             'actions': 'event.published',
         }
         try:
-            response = Eventbrite(token).post('/webhooks/', data)[u'id']
-            if(response.get('status') == 200):
-                UserWebhook.objects.create(webhook_id=response, user=user)
+            response = Eventbrite(token).post('/webhooks/', data)
+            if response.get('id'):
+                response = response.get('id')
+                UserWebhook.objects.create(
+                    webhook_id=response,
+                    user=user,
+                )
         except Exception as ex:
             print ex.message
     return response

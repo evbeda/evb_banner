@@ -1,4 +1,3 @@
-{#{% load activeurl%}#}
 {% extends './shared/base.html' %}
 {% load staticfiles %}
 
@@ -7,107 +6,81 @@
   <h2>Tus banners</h2>
 </div>
 {% if notassignedevents %}
-<div class="alert alert-primary" role="alert">
-  ¡Tenés eventos que no pertenecen a ningún banner!
-  ¿Querés asignarlos ahora? Hace click <a href="{% url 'add_events' %}" class="alert-link">acá</a>.
-  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-    <span aria-hidden="true">&times;</span>
-  </button>
-</div>
+    <div class="alert alert-primary" role="alert">
+      ¡Tenés eventos que no pertenecen a ningún banner!
+      ¿Querés asignarlos ahora? Hace click <a href="{% url 'add_events' %}" class="alert-link">acá</a>.
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+        <span aria-hidden="true">&times;</span>
+      </button>
+    </div>
 {% endif %}
 <div class="page-body">
-  <div class="container-fluid" style="padding-top: 30px;">
+  <div class="container-fluid" style="padding-top: 15px;">
     {% if banners %}
-    <div class="row">
-      <div class="col-md-10">
-        <div class="list-group">
-          <div class="row">
-            <div class="col-md-12">
-              {% for banner in banners %}
-              <div style="padding-top: 5px">
-                <div id="test" class="list-group-item index-list-group-item" >
-                  <div class="row">
-                    <div class="col-md-7">
-                      <h4>{{ banner.title }}</h4>
-                        <p class="float-left">{{ banner.description }}</p>
+        {% for banner in banners %}
+            <div class="span8" style="margin-left: 15px; margin-right: 140px;">
+                <div class="row col no-margin">
+                    <div class="col">
+                        <h5>{{ banner.title }}</h5>
                     </div>
-                    <div class="col-md-1">
-                      <a data-toggle="tooltip" data-placement="top" title="Editar el diseño del banner" style="color:gray" href="{% url 'edit_all_design' pk=banner.pk %}">
-                        <p>Editar el diseño</p>
-                      </a>
-                    </div>
-                    <div class="col-md-1">
-                      <a data-toggle="tooltip" data-placement="top" title="Coloque un orden en sus eventos" class="" href="{% url 'order_in_events' pk=banner.pk %}">
-                        <span style="color:gray">Ordenar Eventos</span>
-                      </a>
-                    </div>
-                    <div class="col-md-1">
-                        <a data-toggle="tooltip" data-placement="top" title="Vista previa del banner" class="" href="{% url 'preview' pk=banner.pk %}" target="blank">
-                          <span class="index-span fas fa-eye"></span>
+                    <div>
+                        <a class="pull-right" href="{% url 'preview' pk=banner.pk %}" target="blank">
+                            <button type="button" class="btn btn-outline-secondary btn-sm">Previsualizar</button>
                         </a>
-                       <p>Ver</p>
-                    </div>
-                    <div class="col-md-1">
-                      <a data-toggle="tooltip" data-placement="top" title="Editar banner" class="text-green" href="{% url 'banner_update' pk=banner.pk %}">
-                        <span class="index-span fas fa-edit"></span>
-                      </a>
-                      <p>Editar</p>
-                    </div>
-                    <div class="col-md-1">
-                        <a data-toggle="tooltip" data-placement="top" title="Eliminar banner" class="text-red" href="{% url 'banner_delete' pk=banner.pk %}">
-                          <i class="index-i fa">&#xf00d;</i>
+                        <a  href="{% url 'order_in_events' pk=banner.pk %}">
+                            <button type="button" class="btn btn-outline-secondary btn-sm">Ordenar</button>
                         </a>
-                       <p>Eliminar</p>
+                        <a class="pull-right" href="{% url 'edit_all_design' pk=banner.pk %}" target="blank">
+                            <button type="button" class="btn btn-outline-secondary btn-sm">Editar diseño</button>
+                        </a>
+                        <a href="{% url 'banner_update' pk=banner.pk %}">
+                            <button type="button" class="btn btn-outline-secondary btn-sm">Editar</button>
+                        </a>
+                        <a href="{% url 'banner_delete' pk=banner.pk %}">
+                            <button type="button" class="btn btn-outline-danger btn-sm">Eliminar</button>
+                        </a>
                     </div>
-                  </div>
                 </div>
-              </div>
-              <div class="panel-group">
-                <div class="panel panel-default">
-                  <div class="panel-heading">
-                    <h4 class="panel-title">
-                      <a data-toggle="collapse" href="#collapse{{banner.id}}">Ver eventos</a>
-                    </h4>
-                  </div>
-                  <div id="collapse{{banner.id}}" class="panel-collapse collapse">
-                    {% for event in events %}
-                    {% if event.banner.id == banner.id %}
-                    <div class="panel-body" style="padding-top: 15px">
-                      <div class="row">
-                        <div class="col-md-7">
-                          <h5> {{ event.title }} </h5>
-                        </div>
-                        <div class=".col-md-2 .offset-md-3">
-                          <a data-toggle="tooltip" data-placement="top" title="Editar banner" class="text-green" href="{% url 'edit_design' pk=banner.pk epk=event.pk %}">
-                            <span class="index-span fas fa-edit"></span>
-                          </a>
-                          <p>Editar</p>
-                        </div>
-                      </div>
-                    </div>
-                    {% endif %}
-                    {% endfor %}
-                  </div>
+                <div class="col">
+                    <p class="description-margin">{{ banner.description }}</p>
+                    <a data-toggle="collapse" href="#collapse-{{banner.id}}">Ver eventos</a>
+                  <div id="collapse-{{banner.id}}" class="panel-collapse collapse">
+                    <ul>
+                        {% for event in events %}
+                        {% if event.banner.id == banner.id %}
+                            <div class="row col no-margin no-padding">
+                                <div class="col">
+                                    <li class="list-group-item index-list-group-item">{{ event.title }}</li>
+                                </div>
+                                <div>
+                                    <a class="pull-right" href="{% url 'edit_design' pk=banner.pk epk=event.pk %}">
+                                        <button type="button" class="btn btn-outline-secondary index-list-group-item-buttons">Editar diseño</button>
+                                    </a>
+                                </div>
+                            </div>
+                        {% endif %}
+                        {% endfor %}
+                    </ul>
                 </div>
-                {% endfor %}
-              </div>
+                <hr>
             </div>
-          </div>
-        </div>
+            </div>
+            {% endfor %}
         {% else %}
-        <div>
-          <img class="index-img" src="{% static 'images/notbannersyet.png' %}" />
-            <p hidden>No banners yet</p>
-            <!-- <div hidden>No banners yet!<div> -->
+        <div class="wrapper">
+            <img src="{% static 'images/newdoc.png' %}" />
+            <h4>Todavía no tenés banners.</h4>
+            <p>¡Empezá creando uno!</p>
         </div>
+        <p hidden>No banners yet</p>
         {% endif %}
       </div>
     </div>
   </div>
   <div class="col-md-2">
     <a href="{% url 'banner_new' %}">
-      <div  class="aligne-right">
-        <span class="index-span-glyphicon-ring glyphicon-ring fas fa-plus-circle "></span>
+      <div>
+        <span class="index-span-glyphicon-ring glyphicon-ring fas fa-plus-circle"></span>
       </div>
     </a>
   </div>
