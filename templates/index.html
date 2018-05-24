@@ -27,13 +27,18 @@
               <div style="padding-top: 5px">
                 <div id="test" class="list-group-item index-list-group-item" >
                   <div class="row">
-                    <div class="col-md-8">
+                    <div class="col-md-7">
                       <h4>{{ banner.title }}</h4>
                         <p class="float-left">{{ banner.description }}</p>
                     </div>
                     <div class="col-md-1">
+                      <a data-toggle="tooltip" data-placement="top" title="Editar el diseño del banner" style="color:gray" href="{% url 'edit_all_design' pk=banner.pk %}">
+                        <p>Editar el diseño</p>
+                      </a>
+                    </div>
+                    <div class="col-md-1">
                       <a data-toggle="tooltip" data-placement="top" title="Coloque un orden en sus eventos" class="" href="{% url 'order_in_events' pk=banner.pk %}">
-                        <span>Ordenar Eventos</span>
+                        <span style="color:gray">Ordenar Eventos</span>
                       </a>
                     </div>
                     <div class="col-md-1">
