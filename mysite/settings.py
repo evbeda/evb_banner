@@ -200,11 +200,11 @@ USE_TZ = True
 # Firebase config
 FIREBASECONFIG = {
     'apiKey': get_env_variable('FIREBASE_APIKEY'),
-    'authDomain': 'evb-banner.firebaseapp.com',
-    'databaseURL': 'https://evb-banner.firebaseio.com',
-    'projectId': 'evb-banner',
-    'storageBucket': 'evb-banner.appspot.com',
-    'messagingSenderId': get_env_variable('FIRE_MSGSENDER_ID')
+    'authDomain': get_env_variable('FIREBASE_AUTHDOMAIN'),
+    'databaseURL': get_env_variable('FIREBASE_DBURL'),
+    'projectId': get_env_variable('FIREBASE_PID'),
+    'storageBucket': get_env_variable('FIREBASE_SBUCKET'),
+    'messagingSenderId': get_env_variable('FIREBASE_MSGSENDER_ID')
 }
 firebase = pyrebase.initialize_app(FIREBASECONFIG)
 
