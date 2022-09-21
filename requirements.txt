@@ -63,7 +63,7 @@ PyJWT==1.6.1
 Pyrebase==3.0.27
 python-coveralls==2.9.1
 python-dateutil==2.7.1
-python-jwt==2.0.1
+python-jwt==3.3.4
 python-openid==2.2.5
 python-shorturl==0.0.4
 pytz==2018.3
